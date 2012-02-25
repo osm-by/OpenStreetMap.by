@@ -1,0 +1,192 @@
+<html>
+<head>
+<title>OpenStreetMap.by - Беларусь</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="description" content="$description" />
+
+<link rel="stylesheet" href="/js/leaflet/leaflet.css" />
+<!--[if lte IE 8]><link rel="stylesheet" href="/js/leaflet/leaflet.ie.css" /><![endif]-->
+
+<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css" />
+<script src="/js/leaflet/leaflet.js"></script>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+
+<link rel="search" href="http://openstreetmap.by/opensearch.xml" 
+      type="application/opensearchdescription+xml" 
+      title="OpenStreetMap.by" />
+<link href="main.css" rel="stylesheet" />
+<link href="smallscreen.css" rel="stylesheet" media="only screen and (max-width:801px)" />
+
+<script src="/js/permalink.js"></script>
+<script src="/js/search.js"></script>
+<script src="/js/breadcrumbs.js"></script>
+<script src="/js/crosshair.js"></script>
+<script src="/js/dirty.js"></script>
+<script src="/js/embed.js"></script>
+<script src="/js/i18n.js"></script>
+<script src="/js/map_click.js"></script>
+<script src="/js/jquery.cookie.js"></script>
+<script src="/js/jquery.contextmenu.js"></script>
+<script src="/js/context.js"></script>
+<script src="/js/route.js"></script>
+
+<script type="text/javascript">
+var mmap;
+
+var json_in_progress = false;
+locale="be";
+</script>
+</head>
+
+<body marginheight="0" marginwidth="0">
+<img src="/img/uho_on_white.png" id="uho" />
+<table border="0" cellspacing="0" cellpadding="0" width="100%" height="100%">
+  <tr>
+    <td width="250" valign="top" align="top" id="left_panel" >
+      <table height="100%"><tr height="256" id="logo_row"><td><img src="/img/logoosmby256.png" width="256" height="256" id="osmbylogo" /></td></tr><tr><td align="center" valign="top"><b><s>OpenStreetMap Belarus</s></b></td></tr><tr><td>
+      
+      <script src="http://widgets.twimg.com/j/2/widget.js"></script>
+<script>
+new TWTR.Widget({
+  version: 2,
+  type: 'search',
+  search: ' #osmby OR from:osmbelarus OR to:osmbelarus OR @osmbelarus ',
+  rpp: 4,
+  interval: 6000,
+  width: 256,
+  height: 300,
+  theme: {
+    shell: {
+      background: '#90b8db',
+      color: '#ffffff'
+    },
+    tweets: {
+      background: '#ffffff',
+      color: '#000000',
+      links: '#0022ff'
+    }
+  },
+  features: {
+    scrollbar: false,
+    loop: false,
+    live: false,
+    hashtags: true,
+    timestamp: false,
+    avatars: true,
+    behavior: 'all'
+  }
+}).render().start();
+
+</script></td></tr></table>
+    </td>
+    <td>
+      <table width=100% height=100%>
+        <tr>
+          <td valign="bottom" height="24" style="height:24;align:right">
+            <span><input type="text" style="width:300;" tabindex='1' id="searchbox" onkeydown="if (event.keyCode == 13) search()"><input type="submit" tabindex="2" value="»" onclick="search()"></span>
+            <span style="float:right"><a href="#" class="topmenu" style="display:none" id='downloadlink'>download</a></span>
+            <span style="float:right"><a href="http://wiki.osm.org/Belarus" class="topmenu">about</a></span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div id="map" style="width: 100%; height: 100%; padding:0; spacing:0"></div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<div id="embeddialog" style="font-size:medium">
+
+<form>
+<span><input type="checkbox" id="embed_crosshair" value="true"><label for="embed_crosshair">Crosshair</label></span>
+<span><select id="embed_lang">
+  <option value="en">English</option>
+  <option value="ru">Русский</option>
+  <option value="be" selected>Беларуская</option>
+</select></span>
+<span>
+<input type="checkbox" id="embed_marker" value="true"><label for="embed_marker">Marker</label></span>
+<div id="embed_marker_label_div"><s>Marker label:</s><input type="text" value="" id="embed_marker_label" style="width:100%" /></div>
+
+
+</form>
+
+<s>Copy this text into your page's HTML code:</s><br />
+
+<textarea id="embedtext" style="width:100%;font-size:medium" rows="5" readonly></textarea></div>
+
+<div id="downloadmaps">
+  <ul>
+    <li><a href="#tabs-j2me">J2ME</a></li>
+    <li><a href="#tabs-android">Android</a></li>
+    <li><a href="#tabs-ios">iOS</a></li>
+    <li><a href="?request=leech&amp;page=garmin">Garmin</a></li>
+    <!--li><a href="?request=leech&amp;page=navitel">Navitel</a></li -->
+  </ul>
+
+ <div id="tabs-android">
+  <a href="http://osmand.net"><img src="/img/osmand-logo.png" align="left"></a>
+ </div>
+ <div id="tabs-ios">
+    <div>
+      <a style="float:left;margin-right:20px" href="http://www.mapswithme.com/iphone-app"><img src="http://www.mapswithme.com/images/logo_playful.png" alt="MapsWithMe Logo" /></a>
+        <div>
+          <h3><a href="http://www.mapswithme.com">MapsWithMe</a></h3>
+            <div>
+              <s>Offline world maps for all countries, including Belarus, based on the OpenStreetMap.</s> <s>Put the whole World into your</s> <a href="http://www.mapswithme.com/iphone-app"><s>iPhone, iPad or iPod</s></a><s> due to greatly compressed vector map data</s>. <s>Made in Belarus</s> :)
+            </div>
+        </div>
+    </div>
+ </div>
+
+ <div id="tabs-j2me">
+    <div>
+      <a style="float:left;margin-right:20px" href="http://openstreetmap.by/download/gpsmid/"><img src="http://openstreetmap.by/img/gpsmid-screen.png" alt="GpsMid Screenshot" /></a>
+        <div>
+          <h3><a href="http://gpsmid.sourceforge.net/">GpsMid</a></h3>
+          <div>
+            <s>GpsMid is a free, fully offline, vector based map application for your mobile phone. It displays your current position on a zoomable map and can be used to search for and navigate to roads or points of interest of your liking. As all data is stored in a compact binary format on your phone you will incur no charges for extra data downloads.</s>
+          </div>
+         <a href="http://openstreetmap.by/download/gpsmid/">Download Pre-Compiled Belarus</a>
+        </div>
+
+    </div>
+</div>
+</div>
+
+<script><!--
+
+
+
+    
+
+  mmap = new L.Map('map', {
+    center: new L.LatLng($latitude, $longitude),
+    zoom: $zoom
+  });
+  mmap.addControl(new L.Control.Permalink());
+  
+
+  
+//--></script>
+<script src="/js/i18n.js"></script>
+<script src="helper.js"></script>
+
+<!-- Piwik --> 
+<script type="text/javascript">
+var pkBaseURL = (("https:" == document.location.protocol) ? "https://openstreetmap.by/piwik/" : "http://openstreetmap.by/piwik/");
+document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
+</script><script type="text/javascript">
+try {
+var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 1);
+piwikTracker.trackPageView();
+piwikTracker.enableLinkTracking();
+} catch( err ) {}
+</script><noscript><p><img src="http://openstreetmap.by/piwik/piwik.php?idsite=1" style="border:0" alt="" /></p></noscript>
+<!-- End Piwik Tracking Code -->
+</body>
+</html>

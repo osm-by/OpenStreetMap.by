@@ -1,0 +1,24 @@
+<html>
+<head>
+<title>Bugs Table - #echo len($bugs) # items</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="main.css" rel="stylesheet" />
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+</head>
+
+<body marginheight="0" marginwidth="0">
+<table border="0" cellspacing="0" cellpadding="0" width="100%" height="100%">
+
+#for $bug in $bugs
+  <tr height="24">
+    <td>
+    <img
+src="/img/icon_to_josm.png" onclick="$.getJSON('http://localhost:8111/load_and_zoom?left=#echo $bug.lon-0.001 #&amp;right=#echo $bug.lon+0.001 #&amp;top=#echo $bug.lat+0.0005 #&amp;bottom=#echo $bug.lat-0.0005 #&amp;jsonp=?', function(data){});">
+    $bug["text"]
+    </td>
+  </tr>
+#end for
+
+</table>
+</body>
+</html>

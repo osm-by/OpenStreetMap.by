@@ -1,0 +1,66 @@
+<html>
+<head>
+<title>GeoMixer API - Hello World</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="main.css" rel="stylesheet" />
+<script src="http://maps.kosmosnimki.ru/api/api.js?key=12D8686E4E1730848FCBC65FF0E86AF5" charset="windows-1251"></script> 
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+<script src="helper.js"></script>
+
+<script type="text/javascript">
+var mmap;
+var auto_layer;
+var auto_active=true;
+var json_in_progress = false;
+var osm_hybrid_layer;
+var language="ru";
+//var KOSMOSNIMKI_LANGUAGE = "English";
+var best_layer = "$layer";
+\$(document).ready(function()
+        {
+        createFlashMap(document.getElementById("map"),
+                function(map)
+                        {
+                        mmap = map;                     // copy to global scope
+                        o = map.addObject();            // add OSM layer
+                        o.setOSMTiles();
+                        o.setAsBaseLayer("OSM");
+                        o = map.addObject();            // add OSM hybrid
+                        o.setTiles(osm_hybrid_tiles, 1);
+                        o.setPolygon([-180, -85, -180, 85, 180, 85, 180, -85, -180, -85]);
+                        o.setVisible(false);
+                        osm_hybrid_layer = o;
+                        map_move_handler();
+                        map.baseLayerControl.setVisible(false);
+                        map.miniMap.setVisible(false);
+                        map.drawing.tools["POINT"].setVisible(false);
+                        //map.drawing.tools["POLYGON"].setVisible(false);
+                        //map.drawing.tools["LINESTRING"].setVisible(false);
+                        map.drawing.tools["FRAME"].setVisible(false);
+                        map.moveTo($longitude, $latitude, $zoom);
+                        map.setHandler("onMove",map_move_handler);
+                });
+        })
+</script>
+</head>
+
+<body marginheight="0" marginwidth="0">
+<table border="0" cellspacing="0" cellpadding="0" width="100%" height="100%">
+  <tr height="24">
+    <td style="background-image:url('img/logo');background-repeat:no-repeat;">
+    </td>
+    <td valign="bottom">
+      <div id="breadcrumbs" style="overflow:hidden;"></div>
+    </td>
+  </tr>
+  <tr>
+    <td width=200>
+      $_("aaaa")
+    </td>
+    <td>
+      <div id="map" style="width: 100%; height: 100%;"></div>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
