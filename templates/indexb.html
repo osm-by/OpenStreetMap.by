@@ -31,6 +31,7 @@
 <script src="/js/jquery.contextmenu.js"></script>
 <script src="/js/context.js"></script>
 <script src="/js/route.js"></script>
+<script src="/js/osbreport.js"></script>
 
 <script type="text/javascript">
 var mmap;
@@ -119,6 +120,21 @@ new TWTR.Widget({
 
 <textarea id="embedtext" style="width:100%;font-size:medium" rows="5" readonly></textarea></div>
 
+<div id="osbreport">
+
+<form>
+<label for="osbreport_username">Who are you?</label><br>
+<input type="text" value="" id="osbreport_username" /><br>
+<label for="osbreport_text">Describe what's wrong:</label><br>
+<textarea id="osbreport_text" style="width:100%;font-size:medium" rows="5"></textarea><br>
+<button id="osbreport_send" type="button">Send report</button>
+
+</form>
+
+</div>
+
+
+
 <div id="downloadmaps">
   <ul>
     <li><a href="#tabs-j2me">J2ME</a></li>
@@ -168,6 +184,7 @@ new TWTR.Widget({
     center: new L.LatLng($latitude, $longitude),
     zoom: $zoom
   });
+  mmap.addControl(new L.Control.Permalink());
   
 
   

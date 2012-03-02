@@ -63,6 +63,14 @@ function context_menu(e){
   }
   
   menu.push( $.contextMenu.separator);
+  
+  var item = {};
+  item[ (_("Report a problem") + ((mmap.getZoom()<13)?(" ("+ _("please zoom in")+")"):''))] = {onclick:OSBmenu, icon:"/img/osb_icon.png", disabled: mmap.getZoom()<13};
+  menu.push(item);
+  
+  
+  
+  
   if (josm_remote){
     var item = {};
     item[_("Edit via ")+josm_remote.application ] = {

@@ -30,6 +30,17 @@ $().ready( function(){
   
   
 
+$("#osbreport").dialog(
+  {
+    autoOpen: false,
+    title: _('Report a problem on map'),
+    width: 750,
+    height: 480,
+    modal: true
+  }
+);
+$("#osbreport_send").click(reportOSB);
+
 
 
 $("#downloadmaps").dialog(

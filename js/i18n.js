@@ -82,6 +82,12 @@ i18n= {
   "Edit on OpenStreetMap.org":"Правіць на OpenStreetMap.org",
   "Route as bicycle":"Роварны маршрут",
   "Route as car":"Аўтамабільны маршрут",
+  "Report a problem":"Паведаміць пра памылку тут",
+  "Report a problem on map":"Паведамленне пра памылку на мапе",
+  "Who are you?":"Хто вы?",
+  "Describe what's wrong":"Што не так",
+  "please zoom in":"калі ласка, павялічце мапу",
+  "Send report":"Даслаць паведамленне",
   
   '':''
   //"shoes shop": "абуак",
@@ -111,6 +117,7 @@ function refreshLocales(){
   $('s').html(function(a,b){return _(b)});
   $('a').html(function(a,b){return _(b)});
   $('label').html(function(a,b){return _(b)});
+  $('button').html(function(a,b){return _(b)});
   $('a').attr("title", function(a,b){return _(b)})
 }
 
