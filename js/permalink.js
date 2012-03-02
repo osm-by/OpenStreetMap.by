@@ -5,14 +5,17 @@ L.Control.Permalink = L.Class.extend({
   },
 
   onAdd: function(map) {
-    this._container = L.DomUtil.create('div', 'leaflet-control-attribution');
-    L.DomEvent.disableClickPropagation(this._container);
     map.on('moveend', this._update, this);
     this._map = map;
+    /*
+    this._container = L.DomUtil.create('div', 'leaflet-control-attribution');
+    L.DomEvent.disableClickPropagation(this._container);
+    
+    
     this._href = L.DomUtil.create('a', null, this._container);
     this._href.innerHTML = "Permalink";
     this._set_center(this._params);
-    this._update();
+    this._update();*/
     if ("q" in this._params){
       $('#searchbox').val(this._params.q);
       search();
@@ -49,8 +52,7 @@ L.Control.Permalink = L.Class.extend({
       this._params['via'] = routePoints.join(";");
       this._params['vehicle'] = vehicle;
     }
-    
-    
+
 
     var url = [];
     for (var i in this._params) {
@@ -60,7 +62,7 @@ L.Control.Permalink = L.Class.extend({
       }
     }
 
-    this._href.setAttribute('href', this._url_base + "?" + url.join('&'));
+    //this._href.setAttribute('href', this._url_base + "?" + url.join('&'));
     if (history.replaceState) {      history.replaceState({},"",this._url_base + "?" + url.join('&'));    };
   },
 
@@ -108,15 +110,15 @@ L.Control.Permalink = L.Class.extend({
         routePoints.push([parseFloat(i[j].split(",")[0]), parseFloat(i[j].split(",")[1])]);
       };
     }
-    
+
     vehicle = params.vehicle || $.cookie('vehicle');
-    
+
     if (this._centered) return;
-    
+
     if ((params.zoom == undefined) && ($.cookie('zoom')!= undefined)) { params.zoom = $.cookie('zoom')};
     if ((params.lat  == undefined) && ($.cookie('lat') != undefined)) { params.lat = $.cookie('lat') };
     if ((params.lon  == undefined) && ($.cookie('lon') != undefined)) { params.lon = $.cookie('lon') };
-                                     
+
     if (params.zoom == undefined ||
         params.lat == undefined ||
         params.lon == undefined) return;
