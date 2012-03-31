@@ -14,8 +14,10 @@ L.Control.Permalink = L.Class.extend({
     
     this._href = L.DomUtil.create('a', null, this._container);
     this._href.innerHTML = "Permalink";
+    
+    */
     this._set_center(this._params);
-    this._update();*/
+    this._update();
     if ("q" in this._params){
       $('#searchbox').val(this._params.q);
       search();

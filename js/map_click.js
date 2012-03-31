@@ -26,11 +26,14 @@ function map_click(where) {
             if ((val.level != undefined) && (!(val.level+'' in levels_available)) && (val.level+"" == parseFloat(val.level+""))){
               levels_available.push(val.level+'');
             }
+            else{
+              if (val.level == undefined) levels_available.push('all');
+            }
           }
         };
         levels_available.sort(function(a,b){a-b});
         levels_available = $.unique(levels_available);
-        levels_available.push('all');
+        
         if (levels_available.length > 1) {
           levels_available.reverse();
           levels_available.sort(function(a,b){a-b});

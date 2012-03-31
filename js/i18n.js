@@ -88,7 +88,15 @@ i18n= {
   "Describe what's wrong":"Што не так",
   "please zoom in":"калі ласка, павялічце мапу",
   "Send report":"Даслаць паведамленне",
-  
+  "Route as taxi":"Кошт таксі",
+  "Service Phone":"Тэлефон службы",
+  "Price (est.)":"Кошт (прыкл.)",
+  " BYR":"р.",
+  " km":" км",
+  "exactly":"роўна",
+  "min":"хв.",
+  "Route length":"Даўжыня маршрута",
+  "Travel time":"Час",
   '':''
   //"shoes shop": "абуак",
   },

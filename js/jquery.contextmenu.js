@@ -221,7 +221,9 @@
 				$c.css( {top:pos.y+"px", left:pos.x+"px", position:"absolute",zIndex:9999} )[cmenu.showTransition](cmenu.showSpeed,((cmenu.showCallback)?function(){cmenu.showCallback.call(cmenu);}:null));
 				cmenu.shown=true;
         window.setTimeout(function(){
-          $(document).one('click',null,function(){cmenu.hide()});},100) // Handle a single click to the document to hide the menu
+          $(document).one('click',null,function(){cmenu.hide()});
+          $(document).one('keyup',null,function(e) {if (e.keyCode == 27) { cmenu.hide() };});
+        },100) // Handle a single click to the document to hide the menu
           //$(document).one('mousedown',null,function(){cmenu.hide()});},100) // Handle a single click to the document to hide the menu
 			}
 		},
@@ -262,6 +264,7 @@
 		var cmenu = $.contextMenu.create(menu,options);
 		return this.each(function(){
 			$(this).bind('contextmenu',function(e){cmenu.show(this,e);return false;});
+      $(this).bind('longclick',function(e){cmenu.show(this,e);return false;});
 		});
 	};
 })(jQuery);

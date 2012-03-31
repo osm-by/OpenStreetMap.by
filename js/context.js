@@ -52,7 +52,11 @@ function context_menu(e){
       var item = {};
       item[(vehicle!="car"?'☐ ':'☑ ')+ _("Route as car")] = {onclick:function(menuItemClicked,menuObject) { vehicle="car"; updateRoute(); }, icon:"/img/wheel_16.png", disabled: vehicle=="car"};
       menu.push(item);
-
+      if (canRouteTaxi()){
+        var item = {};
+        item[(vehicle!="taxi"?'☐ ':'☑ ')+ _("Route as taxi")] = {onclick:function(menuItemClicked,menuObject) { vehicle="taxi"; updateRoute(); }, icon:"/img/taxi_c.png", disabled: vehicle=="taxi"};
+        menu.push(item);
+      }
       var item = {};
       item[ _("Reverse route")] = {onclick:function(menuItemClicked,menuObject) { routePoints.reverse(); updateRoute(); }, icon:"/img/reverse.png"};
       menu.push(item);
