@@ -21,7 +21,7 @@ L.Control.Breadcrumbs = L.Class.extend({
     this._json_in_progress = setTimeout( (function(ctx) { return function(){
       
       $.getJSON('?request=describe',
-                {"lat":mmap.getCenter().lat, "lon":mmap.getCenter().lng, "zoom":mmap.getZoom(), "locale": locale},
+                {"lat":mmap.getCenter().lat, "lon":mmap.getCenter().lng, "zoom":mmap.getZoom(), "locale": locale, "id": $.cookie('userid')},
                 function(data)
         {
         var aaa = "";
