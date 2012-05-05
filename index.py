@@ -9,6 +9,8 @@ import psycopg2
 import urllib
 import urllib2
 import re
+import redis
+import time
 
 reload(sys)
 sys.setdefaultencoding("utf-8")          # a hack to support UTF-8
@@ -23,6 +25,8 @@ from web.contrib.template import render_cheetah
 
 GeoIpCache = GeoIP.open('/srv/www/openstreetmap.by/htdocs/GeoLiteCity.dat', GeoIP.GEOIP_MEMORY_CACHE)
 pg_database = "dbname=gis user=gis"
+
+LOCALES = ['be', 'ru', 'en', 'none']
 
 OK = 200
 ERROR = 500
@@ -42,7 +46,8 @@ urls = (
 class mainhandler:
    def GET(self, crap):
        return handler()
-
+   def POST(self, crap):
+       return handler()
 
 
 
@@ -123,11 +128,12 @@ def geocoder_describe((lon,lat), zoom, locale):
     from planet_osm_polygon p
     where
        
-         ST_Intersects(way, ST_Buffer(ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913),10))
+         ST_Intersects(way, ST_Buffer(ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913),100))
          and building is not null
          -- and "addr:street" is not NULL
          and "addr:housenumber" is not NULL
-    limit 1;"""%(namestring, lon, lat)
+    order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913))
+    limit 1;"""%(namestring, lon, lat, lon, lat)
       database_cursor.execute(req)
       buildings = database_cursor.fetchall()
       descr.extend([(i[0],i[1],json.loads(i[2]),i[3]) for i in buildings])
@@ -167,7 +173,11 @@ def postgis_query_geojson(query, geomcolumn="way"):
   #try:
     database_connection = psycopg2.connect(pg_database)
     database_cursor = database_connection.cursor()
-    database_cursor.execute(query)
+    try:
+      database_cursor.execute(query)
+    except:
+      print >> sys.stderr, "QUERY FAILURE: ", query
+      sys.stderr.flush()
     names = [q[0] for q in database_cursor.description]
     polygons = []
     for row in database_cursor.fetchall():
@@ -201,34 +211,16 @@ def postgis_query_geojson(query, geomcolumn="way"):
 def geocoder_geocode(text,(lon,lat)):
   descr = ()
   #try:
-  itags = '"addr:street", "addr:housenumber", "name", "name:ru", "name:be", "place", "shop", "amenity", "ref", "admin_level", "osm_id"'
+  itags = '"addr:street", "addr:housenumber", "name", "name:ru", "name:be", "place", "shop", "amenity", "ref", "admin_level", "osm_id", "building"'
   countlimit = 20
+  otext = text
   if True:
-    
     text = text.replace("\\", "\\\\").strip()
     text = text.replace("'", "\\'")
-    
-    
-    
-    
     if "котярин дом" in text.lower():
       text = "партизанский 107"
-    req = """
-    select
-        %s,
-        ST_AsGeoJSON(ST_Expand(ST_Transform(way,4326),0)) as way
-    from planet_osm_polygon
-    where
-       (
-       -- "name:ru" = E'%s' or 
-       name = E'%s' or 
-       "name:en" = E'%s'
-       )
-    order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;"""%(itags, text, text, text, lon, lat, countlimit)
 
-    descr = postgis_query_geojson(req)
-    if descr:
-      return descr
+
     if True: ## here was check for " " in text, but it didn't allow streets to be found
       # text is complicated - needs split
       text = text.replace(".", ". ")
@@ -252,7 +244,7 @@ def geocoder_geocode(text,(lon,lat)):
         "тр-т": "тракт",
         "тракт": "тракт",
 
-        "пер.": "переулок",
+        "пер": "переулок",
         "переулок": "переулок",
         "п-к": "переулок",
         
@@ -260,8 +252,8 @@ def geocoder_geocode(text,(lon,lat)):
         "пр-д": "проезд",
         "проезд": "проезд",
         
-        "ш.": "шоссе",
-        "шос.": "шоссе",
+        "ш": "шоссе",
+        "шос": "шоссе",
         "шоссе": "шоссе",
         }
       for k,v in status_full.items():
@@ -273,6 +265,7 @@ def geocoder_geocode(text,(lon,lat)):
           continue
         if word[0].isdigit() or ((word not in status_full) and (len(word)<=2)):
           hnos.append(word)
+          continue
         elif word in status_full:
           streetstatuses.add(status_full[word])
           continue
@@ -302,7 +295,8 @@ def geocoder_geocode(text,(lon,lat)):
       if citycandidates:
         sqlcities = "("+ ", ".join(["E'"+v.replace("\\", "\\\\").replace("'", "\\'")+"'" for k,v in citycandidates.iteritems()]) + ")"
         wherecities = "and way && (select ST_Collect(ST_Buffer(way,0.00001)) from planet_osm_polygon where (place in ('city', 'town', 'village', 'hamlet', 'locality') or admin_level in ('4','8','9','10')) and (name in "+sqlcities+")) and ST_Intersects(ST_Buffer(way,0.00001),(select ST_Buffer(ST_Collect(way),0) from planet_osm_polygon where (place in ('city', 'town', 'village', 'hamlet', 'locality') or admin_level in ('4','8','9','10')) and (name in "+sqlcities+"))) "
-
+      #if not streetstatuses:
+       #streetstatuses = ["проспект", "улица", "площадь"]
       if streetstatuses:
         for status in streetstatuses:
           if status in "|".join(candidates.keys()):
@@ -322,10 +316,42 @@ def geocoder_geocode(text,(lon,lat)):
         can.add(candidate.lower())
         can.add(candidate.replace("проспект", "просп."))
         can.add(candidate.replace("улица", "ул."))
+        can.add(candidate.replace("переулок", "пер."))
+
+
+
       escaped_can = "(" + ", ".join(["E'"+a.replace("\\", "\\\\").replace("'", "\\'")+"'" for a in can]) + ")"
       wherestreets = '"addr:street" is NULL and'
       if can:
         wherestreets = '"addr:street" in %s and' % escaped_can
+
+      
+      hcan = set()
+      for candidate in hnos:
+        hcan.add(candidate)
+        hcan.add(candidate.lower())
+        hcan.add(candidate.upper())
+        hcan.add(candidate.replace("к", "к "))
+        hcan.add(candidate.replace("к", " к"))
+        hcan.add(candidate.replace("К", " к"))
+        
+        hno_rxp = re.compile(u'([0-9]*)\s*([а-йл-яА-ЙЛ-Я]*)\s*,?\s*(к\.|к|корп\.|корпус)?\s*([0-9]*)\s*([а-яА-Я]*)[.]?$')
+        en = u"eyopakxc"
+        ru = u"еуоракхс"
+        for i in range(0,len(en)-1):
+          candidate = candidate.replace(en[i],ru[i])
+          hcan.add(candidate)
+        p = hno_rxp.match(candidate.upper())
+        if p:
+          hno = p.groups()
+          hno = [hno[0], hno[1], hno[3], hno[4]]
+
+          zhno = ""
+          zhno += str(hno[0]) + str(hno[1])
+          if hno[2] or hno[3]:
+            zhno += " к" + str(hno[2]) + str(hno[3])
+          hcan.add(zhno)
+      hnos = list(hcan)
       escaped_hnos = "(" + ", ".join(["E'"+a.replace("\\", "\\\\").replace("'", "\\'")+"'" for a in hnos]) + ")"
       
       if hnos:
@@ -446,10 +472,28 @@ order by distance limit %s;"""%(itags, lon, lat, escaped_can, escaped_hnos, '', 
   where
   ("name" in %s)
   and (place in ('city', 'town', 'village', 'hamlet', 'locality') or admin_level in ('4','8','9','10'))
-  order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;"""%(itags, sqlcities, lon, lat, countlimit)        
+  order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;"""%(itags, sqlcities, lon, lat, countlimit)
         descr = postgis_query_geojson(req)
         if descr:
           return descr
+
+    ### Exact match - last resort
+    req = """
+    select
+        %s,
+        ST_AsGeoJSON(ST_Expand(ST_Transform(way,4326),0)) as way
+    from planet_osm_polygon
+    where
+       (
+       -- "name:ru" = E'%s' or 
+       name = E'%s' or 
+       "name:en" = E'%s'
+       )
+    order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;"""%(itags, otext, otext, otext, lon, lat, countlimit)
+    descr = postgis_query_geojson(req)
+    if descr:
+      return descr
+          
   return descr
 
 
@@ -503,6 +547,8 @@ def face_main(data):
   render = render_cheetah('templates/')
   a = ""
   locale = data.get("locale","be")
+  userip = os.environ["REMOTE_ADDR"]
+  
   if locale not in ('en','ru','be'):
     locale = "be"
   if data.get('request') == 'describe':
@@ -511,9 +557,22 @@ def face_main(data):
     lon = float(data["lon"])
 
     zoom = float(data.get("zoom", 10))
+    userid = data.get("id", "none")
+    r = redis.Redis(host='localhost', port=6379, db=0)
+    r.rpush("osmbyusers:"+userip+":"+userid, json.dumps([lat,lon,zoom, locale, time.time()]))
+    r.expire("osmbyusers:"+userip+":"+userid, 3600)
     a = {}
     a["breadcrumbs"] = geocoder_describe((lon,lat), zoom, locale)
     a = json.dumps(a, ensure_ascii=False)
+  elif data.get('request') == 'getusersnow':
+    content_type = "text/javascript"
+    r = redis.Redis(host='localhost', port=6379, db=0)
+    a = r.keys("osmbyusers*")
+    b = []
+    for i in a:
+      b.append([json.loads(j) for j in r.lrange(i,0,1000)])
+    a = b
+    a = json.dumps(a)
   elif data.get('request') == 'geocode':
     content_type = "text/javascript"
     lat = float(data.get("lat", 53.9))
@@ -521,7 +580,7 @@ def face_main(data):
     text = data.get("text",'Minsk')
     a = {}
     a["results"] = geocoder_geocode(text,(lon,lat))
-    
+
     try:
       logfile = open('/srv/www/openstreetmap.by/htdocs/req.txt', "a")
       print >> logfile, len(a["results"]), lon, lat, text
@@ -585,6 +644,15 @@ def face_main(data):
         text = element.text
         text = text.replace("<hr","<br")
       a = render.bugstable(bugs=bugs)
+  elif data.get('request') == 'locale-tracebug':
+    lang = data.get("lang", None)
+    tt = data.get("lines", "|")[:-1] # string%1|string2%3
+    if (lang in LOCALES) and tt:
+      r = redis.Redis(host='localhost', port=6379, db=0)
+      tt = [(i.split('%')[0], float(i.split('%')[1]) ) for i in tt.split('|')]
+      for i in tt:
+        r.zincrby('locale:'+lang, i[0], i[1])
+    a = "ok"
   else:
     lat, lon, zoom = (0, 0, 1)
     layer = "osm"
@@ -593,7 +661,7 @@ def face_main(data):
       lon = float(data["lon"])
       zoom = float(data.get("zoom", 10))
     except KeyError, ValueError:
-      user_geoip = GeoIpCache.record_by_addr(os.environ["REMOTE_ADDR"])            # try GeoIP
+      user_geoip = GeoIpCache.record_by_addr(userip)            # try GeoIP
       try:
         lat = user_geoip["latitude"]
         lon = user_geoip["longitude"]
@@ -607,10 +675,6 @@ def face_main(data):
       description.reverse()
       description = ", ".join(description) + " на картах OpenStreetMap Беларусь"
       description.replace('"','')
-      
-    
-    
-    
     a = render.index( _=i18n, longitude=lon, latitude=lat, zoom=zoom, description=description)
     if data.get("beta"):
       a = render.indexb( _=i18n, longitude=lon, latitude=lat, zoom=zoom, description=description)
