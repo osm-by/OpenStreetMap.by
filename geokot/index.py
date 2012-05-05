@@ -43,7 +43,504 @@ class mainhandler:
    def GET(self, crap):
        return handler()
 
+def get_name_string(locale):
+  """
+  Returns
+  """
+  if locale == "en":
+    namestring = """COALESCE("name:en","int_name", replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(translate("name",'абвгдезиклмнопрстуфьАБВГДЕЗИКЛМНОПРСТУФЬ','abvgdeziklmnoprstuf’ABVGDEZIKLMNOPRSTUF’'),'х','kh'),'Х','Kh'),'ц','ts'),'Ц','Ts'),'ч','ch'),'Ч','Ch'),'ш','sh'),'Ш','Sh'),'щ','shch'),'Щ','Shch'),'ъ','”'),'Ъ','”'),'ё','yo'),'Ё','Yo'),'ы','y'),'Ы','Y'),'э','·e'),'Э','E'),'ю','yu'),'Ю','Yu'),'й','y'),'Й','Y'),'я','ya'),'Я','Ya'),'ж','zh'),'Ж','Zh'))"""
+  else:
+    namestring = 'COALESCE("name:'+locale+'", "name")'
+  return namestring
+
+
 def geocoder_describe((lon,lat), zoom, locale):
+  bbox = True
+  
+  database_connection = psycopg2.connect(pg_database)
+  database_cursor = database_connection.cursor()
+
+  descr =  {"addr:housenumber":"",
+            "name":"",
+#            "addr:unit":"",
+#            "addr:floor":"",
+            "addr:entrance":"",
+            "addr:door":"",
+            "addr:village":"",
+#            "addr:soi":"",
+            "addr:street":"",
+            "addr:kilometre":"",
+            "addr:city":"",
+            "addr:subdistrict":"",
+            "addr:district":"",
+            "addr:province":"",
+            "addr:postcode":"",
+            "addr:country":"",
+            "country_code":"",
+            }
+  descr = {"exact":descr.copy(), "approx": descr.copy(), "tech":{}}
+
+  params = {}
+  params["geom"]     = "ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)" % (lon,lat)
+  params["distance"] = 200 #m
+  params["way"] = "ST_AsGeoJSON(ST_Transform(way, 4326),7)"
+  params["name"] = get_name_string(locale)
+
+
+  """addr:housenumber"""
+  req = """
+    select
+        {way},
+        "addr:housenumber"
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, {geom})
+         and building is not null
+         and "addr:housenumber" is not NULL
+    order by ST_Area(way) asc
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  z = database_cursor.fetchall()
+  descr["exact"]["addr:housenumber"] = ";".join([i[1] for i in z])
+
+  req = """
+    select
+        {way} as t,
+        "addr:housenumber" as hno,
+        ST_Distance(way, {geom}) as dist
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, ST_Expand({geom}, {distance}))
+         and "addr:housenumber" is not NULL
+    union
+        select
+        {way} as t,
+        "addr:housenumber" as hno,
+        ST_Distance(way, {geom}) as dist
+    from planet_osm_point p
+    where
+         ST_Intersects(way, ST_Expand({geom}, {distance}))
+         and "addr:housenumber" is not NULL
+    order by dist
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  z = database_cursor.fetchall()
+  descr["approx"]["addr:housenumber"] = ";".join([i[1] for i in z])
+
+  """name"""
+  req = """
+    select
+        {way},
+        coalesce({name}, tags->'addr:housename')
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, {geom})
+         and (building is not null
+              or landuse='park')
+         and ((tags?'addr:housename') or (name is not null))
+    order by ST_Area(way) asc
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  z = database_cursor.fetchall()
+  descr["exact"]["name"] = ";".join([i[1] for i in z])
+
+  req = """
+    select
+        {way},
+        coalesce({name}, tags->'addr:housename')
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, ST_Expand({geom}, {distance}))
+         and (building is not null
+              or landuse='park')
+         and ((tags?'addr:housename') or (name is not null))
+    order by ST_Distance(way, {geom})
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  buildings = database_cursor.fetchall()
+  descr["approx"]["name"] = ";".join([i[1] for i in buildings])
+
+
+  """addr:entrance"""
+  ## there are no exact entrances
+  req = """
+    select
+        {way},
+        ref
+    from planet_osm_point p
+    where
+         ST_Intersects(way, ST_Expand({geom}, {distance}/5))
+         and (tags?'entrance')
+         and ref is not NULL
+    order by ST_Distance(way, {geom})
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  buildings = database_cursor.fetchall()
+  descr["approx"]["addr:entrance"] = ";".join([i[1] for i in buildings])
+
+  """addr:door"""
+  ## there are no exact entrances
+  req = """
+    select
+        {way},
+        coalesce(tags->'addr:door', tags->'addr:flats', "addr:flats")
+    from planet_osm_point p
+    where
+         ST_Intersects(way, ST_Expand({geom}, {distance}/4))
+         
+         and ((tags?'addr:door') or (tags?'addr:flats') or ("addr:flats" is not NULL))
+    order by ST_Distance(way, {geom})
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  buildings = database_cursor.fetchall()
+  descr["approx"]["addr:door"] = ";".join([i[1] for i in buildings])
+  
+
+
+  
+  """addr:village"""
+  req = """
+    select
+        {way},
+        {name}
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, {geom})
+         and (place in ('hamlet', 'village'))
+         and name is not NULL
+    order by ST_Area(way) asc
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  z = database_cursor.fetchall()
+  descr["exact"]["addr:village"] = ";".join([i[1] for i in z])
+
+  req = """
+    select
+        {way},
+        {name},
+        ST_Distance(way, {geom}) as dist
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, ST_Expand({geom}, {distance}*10))
+         and (place in ('hamlet', 'village'))
+         and name is not NULL
+    
+    union
+    select
+        {way},
+        {name},
+        ST_Distance(way, {geom}) as dist
+    from planet_osm_point p
+    where
+         ST_Intersects(way, ST_Expand({geom}, {distance}*10))
+         and (place in ('hamlet', 'village'))
+         and name is not NULL
+    order by dist
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  buildings = database_cursor.fetchall()
+  descr["approx"]["addr:village"] = ";".join([i[1] for i in buildings])
+
+
+
+
+  """addr:street"""
+  req = """
+    select
+        {way},
+        coalesce((select {name} from planet_osm_line l where p."addr:street"=l."name" order by ST_Distance(p.way,l.way) limit 1), "addr:street")
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, {geom})
+         and (building is not NULL)
+         and "addr:street" is not NULL
+    order by ST_Area(way) asc
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  z = database_cursor.fetchall()
+  descr["exact"]["addr:street"] = ";".join([i[1] for i in z])
+  
+  req = """
+    select
+        {way},
+        coalesce((select {name} from planet_osm_line l where p."addr:street"=l."name" order by ST_Distance(p.way,l.way) limit 1), "addr:street"),
+        ST_Distance(way, {geom}) as dist
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, ST_Expand({geom}, {distance}))
+         and "addr:street" is not NULL
+    union
+    select
+        {way},
+        coalesce((select {name} from planet_osm_line l where p."addr:street"=l."name" order by ST_Distance(p.way,l.way) limit 1), "addr:street"),
+        ST_Distance(way, {geom}) as dist
+    from planet_osm_point p
+    where
+         ST_Intersects(way, ST_Expand({geom}, {distance}))
+         and "addr:street" is not NULL
+    order by dist
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  z = database_cursor.fetchall()
+  descr["approx"]["addr:street"] = ";".join([i[1] for i in z])
+  
+  
+  if not z:
+    req = """
+      select
+          {way},
+          COALESCE( {name} || ' (' || ref || ')', {name}, ref),
+          coalesce(oneway, 'no'),
+          ST_Azimuth(
+  ST_Line_Interpolate_Point(l.way,
+  case when (ST_Line_Locate_Point(l.way,{geom})-0.01 < 0) then 0 else ST_Line_Locate_Point(l.way,{geom})-0.0000001 end),
+  ST_Line_Interpolate_Point(l.way,
+  case when (ST_Line_Locate_Point(l.way,{geom})+0.01 > 1) then 1 else ST_Line_Locate_Point(l.way,{geom})+0.0000001 end)
+  )/(2*pi())*360,
+          COALESCE( "name" || ' (' || ref || ')', "name", ref)
+      from planet_osm_line l
+      where
+          ST_Intersects(way, ST_Expand({geom}, {distance}))
+          and (highway is not NULL)
+          and (name is not NULL or ref is not NULL)
+      order by ST_Distance(way, {geom})
+      limit 1;""".format(**params)
+
+    database_cursor.execute(req)
+    z = database_cursor.fetchall()
+    if z:
+      descr["approx"]["addr:street"] = ";".join([i[1] for i in z])
+      descr["tech"]["oneway"] = ";".join([i[2] for i in z])=="yes"
+      descr["tech"]["azimuth"] = ([i[3] for i in z])[0]
+      params["street"] = ";".join([i[4] for i in z]).replace("'",'')
+
+
+      """addr:kilometre"""
+      
+      req = """
+        select
+            'no wai',
+            replace(replace(lower(p.pk),' ',''),'km', '') as pk,
+            ST_Azimuth(
+    ST_Line_Interpolate_Point(l.way,
+    case when (ST_Line_Locate_Point(l.way,{geom})-0.0001 < 0) then 0 else ST_Line_Locate_Point(l.way,{geom})-0.0001 end),
+    ST_Line_Interpolate_Point(l.way,
+    case when (ST_Line_Locate_Point(l.way,{geom})+0.0001 > 1) then 1 else ST_Line_Locate_Point(l.way,{geom})+0.0001 end)
+    )/(2*pi())*360,
+            ST_X(p.way) - ST_X({geom}),
+            ST_Y(p.way) - ST_Y({geom})
+        from planet_osm_point p
+        join planet_osm_line l on (ST_DWithin(p.way,l.way, 2) and COALESCE( l.name || ' (' || l.ref || ')', l.name, l.ref) = '{street}')
+        where
+            ST_Intersects(p.way, ST_Expand({geom}, 1200))
+            and p."highway"='milestone'
+            and p.pk is not NULL
+        order by ST_Distance(p.way, {geom})
+        limit 10;""".format(**params)
+      database_cursor.execute(req)
+      z = database_cursor.fetchall()
+      
+      descr["approx"]["addr:kilometre"] = ";".join([i[1] for i in z])
+      if len(z) > 1:
+        z.sort(lambda x,y: int(100000*(   abs((y[2] - descr["tech"]["azimuth"])%360) - abs((x[2] - descr["tech"]["azimuth"])%360)) ) )
+        #z = [i for i in z if (abs(i[2]-descr["tech"]["azimuth"])%360)< 140]
+        p1 = z[0]
+        p2 = z[1]
+        descr["approx"]["addr:kilometre"] = float(p2[1]) - (float(p2[1])-float(p1[1]))*(p1[4]/(p1[4]-p2[4]) + p1[2]/(p1[3]-p2[3]))/2
+        
+      #descr["tech"]["pk"] = z
+
+
+
+  """addr:city"""
+  req = """
+    select
+        {way},
+        {name}
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, {geom})
+         and (place in ('city', 'town'))
+         and {name} is not NULL
+    order by ST_Area(way) asc
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  z = database_cursor.fetchall()
+  descr["exact"]["addr:city"] = ";".join([i[1] for i in z])
+
+  req = """
+    select
+        {way},
+        {name}
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, ST_Expand({geom}, {distance}*10))
+         and (place in ('city', 'town'))
+         and name is not NULL
+    order by ST_Distance(way, {geom})
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  buildings = database_cursor.fetchall()
+  descr["approx"]["addr:city"] = ";".join([i[1] for i in buildings])
+
+  """addr:subdistrict"""
+  req = """
+    select
+        {way},
+        {name}
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, {geom})
+         and (admin_level = '8' and boundary = 'administrative')
+         and name is not NULL
+    order by ST_Area(way) asc
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  z = database_cursor.fetchall()
+  descr["exact"]["addr:subdistrict"] = ";".join([i[1] for i in z])
+
+  req = """
+    select
+        {way},
+        tags->'addr:subdistrict'
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, ST_Expand({geom}, {distance}*100))
+         and tags?'addr:subdistrict'
+    order by ST_Distance(way, {geom})
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  buildings = database_cursor.fetchall()
+  descr["approx"]["addr:subdistrict"] = ";".join([i[1] for i in buildings])
+
+  """addr:district"""
+  req = """
+    select
+        {way},
+        {name}
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, {geom})
+         and (admin_level = '6' and boundary = 'administrative')
+         and name is not NULL
+    order by ST_Area(way) asc
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  z = database_cursor.fetchall()
+  descr["exact"]["addr:district"] = ";".join([i[1] for i in z])
+
+  
+  req = """
+    select
+        {way},
+        tags->'addr:district'
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, ST_Expand({geom}, {distance}*100))
+         and tags?'addr:district'
+    order by ST_Distance(way, {geom})
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  buildings = database_cursor.fetchall()
+  descr["approx"]["addr:district"] = ";".join([i[1] for i in buildings])
+
+  """addr:province"""
+  req = """
+    select
+        {way},
+        {name}
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, {geom})
+         and (admin_level = '4' and boundary = 'administrative')
+         and name is not NULL
+    order by ST_Area(way) asc
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  z = database_cursor.fetchall()
+  descr["exact"]["addr:province"] = ";".join([i[1] for i in z])
+
+  
+  req = """
+    select
+        {way},
+        tags->'addr:province'
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, ST_Expand({geom}, {distance}*100))
+         and tags?'addr:province'
+    order by ST_Distance(way, {geom})
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  buildings = database_cursor.fetchall()
+  descr["approx"]["addr:province"] = ";".join([i[1] for i in buildings])
+
+  
+  """addr:postcode"""
+  req = """
+    select
+        {way},
+        "addr:postcode"
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, {geom})
+         and "addr:postcode" is not NULL
+    order by ST_Area(way) asc
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  z = database_cursor.fetchall()
+  descr["exact"]["addr:postcode"] = ";".join([i[1] for i in z])
+
+  req = """
+    select
+        {way},
+        "addr:postcode"
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, ST_Expand({geom}, {distance}*10))
+         and "addr:postcode" is not NULL
+    order by ST_Distance(way, {geom})
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  buildings = database_cursor.fetchall()
+  descr["approx"]["addr:postcode"] = ";".join([i[1] for i in buildings])
+
+  """addr:country"""
+  req = """
+    select
+        {way},
+        {name}
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, {geom})
+         and (admin_level = '2' and boundary = 'administrative')
+         and name is not NULL
+    order by ST_Area(way) asc
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  z = database_cursor.fetchall()
+  descr["exact"]["addr:country"] = ";".join([i[1] for i in z])
+
+  
+  req = """
+    select
+        {way},
+        ( select {name} from planet_osm_point where place='country' and (tags->'country_code_iso3166_1_alpha_2') = (p.tags->'addr:country') limit 1),
+        (p.tags->'addr:country')
+    from planet_osm_polygon p
+    where
+         ST_Intersects(way, ST_Expand({geom}, {distance}*100))
+         and tags?'addr:country'
+    order by ST_Distance(way, {geom})
+    limit 1;""".format(**params)
+  database_cursor.execute(req)
+  buildings = database_cursor.fetchall()
+  descr["approx"]["addr:country"] = ";".join([i[1] for i in buildings])
+  descr["approx"]["country_code"] = ";".join([i[2] for i in buildings])
+  return descr
+  
+
+def geocoder_describe1((lon,lat), zoom, locale):
   descr = ()
   #try:
   if locale == "en":
@@ -495,7 +992,14 @@ def face_main(data):
     lon = float(data["lon"])
     zoom = float(data.get("zoom", 10))
     a = {}
-    a["breadcrumbs"] = geocoder_describe((lon,lat), zoom, locale)
+    userip = os.environ["REMOTE_ADDR"]
+    import redis
+    import time
+    userid = data.get("id", "none")
+    r = redis.Redis(host='localhost', port=6379, db=0)
+    r.rpush("osmbyusers:"+userip+":"+userid, json.dumps([lat,lon,zoom, locale, time.time()]))
+    r.expire("osmbyusers:"+userip+":"+userid, 3600)
+    a = geocoder_describe((lon,lat), zoom, locale)
     a = json.dumps(a, ensure_ascii=False)
   elif data.get('request') == 'geocode':
     content_type = "text/javascript"
@@ -526,6 +1030,8 @@ def face_main(data):
     a["results"] = organisations_around_point((lon,lat), locale)
     a["coords"] = (lon, lat)
     a = json.dumps(a, ensure_ascii=False)
+  if data.get('callback'):
+    a = data.get('callback') + "(" + a + ");"
 
   return OK, content_type, a
 
