@@ -86,14 +86,29 @@ new TWTR.Widget({
 </script></td></tr></table>
     </td>
     <td>
-      <table width=100% height=100%>
-        <tr>
-          <td valign="bottom" height="24" style="height:24;align:right">
-            <span><input type="text" style="width:300;" tabindex='1' id="searchbox" onkeydown="if (event.keyCode == 13) search()"><input type="submit" tabindex="2" value="»" onclick="search()"></span>
-            <span style="float:right"><a href="#" class="topmenu" style="display:none" id='downloadlink'>download</a></span>
-            <span style="float:right"><a href="http://wiki.osm.org/Belarus" class="topmenu">about</a></span>
-          </td>
-        </tr>
+    
+<table width="100%" height="100%">
+  <tr>
+    <td class="topline">
+      <div class="topmenu">
+        <a href="#" id="downloadlink">download</a>
+        <a href="http://wiki.osm.org/Belarus">about</a>
+
+        <span class="lang">
+          <a href="/?lang=en"><img src="img/png/gb.png"></a>
+          <a href="/?lang=be"><img src="img/png/by.png"></a>
+          <a href="/?lang=ru"><img src="img/png/ru.png"></a>
+        </span>
+      </div>
+
+      <div class="search">
+        <input type="text" style="width:300;" tabindex="1" id="searchbox" onkeydown="if (event.keyCode == 13) search()"><input type="submit" tabindex="2" value="»" onclick="search()">
+      </div>
+    </td>
+  </tr>
+  
+
+
         <tr>
           <td>
             <div id="map" style="width: 100%; height: 100%; padding:0; spacing:0"></div>
@@ -181,11 +196,35 @@ new TWTR.Widget({
 
 
 
-    
+      // Zoom control patching to insert more buttons
+    L.Control.Zoom = L.Control.Zoom.extend({
+        onAdd: function (map) {
+            this._map = _map = map;
+            this._container = L.DomUtil.create('div', 'leaflet-control-zoom');
+
+            this._zoomInButton = this._createButton(
+                            'Zoom in', 'leaflet-control-zoom-in', this._map.zoomIn, this._map);
+            this._zoomOutButton = this._createButton(
+                            'Zoom out', 'leaflet-control-zoom-out', this._map.zoomOut, this._map);
+
+            this._zoomLocateButton = this._createButton(
+                            'Locate me!', 'leaflet-control-zoom-locate', function() { mmap.locateAndSetView();
+                            //mmap.locateAndSetView({enableHighAccuracy: true}); 
+                            });
+
+
+
+            this._container.appendChild(this._zoomInButton);
+            this._container.appendChild(this._zoomOutButton);
+            this._container.appendChild(this._zoomLocateButton);
+        }
+    });
+
 
   mmap = new L.Map('map', {
     center: new L.LatLng($latitude, $longitude),
-    zoom: $zoom
+    zoom: $zoom,
+    touchZoom: L.Browser.touch
   });
   mmap.addControl(new L.Control.Permalink());
   
