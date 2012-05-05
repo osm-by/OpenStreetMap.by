@@ -39,7 +39,7 @@ td{margin:0;padding:2}
 .twtr-hd {display:none}
 .twtr-tweet-text p em {display:none}
 
-.topmenu {
+/*.topmenu {
   color: black;
   text-align: right;
   float: left;
@@ -51,7 +51,7 @@ td{margin:0;padding:2}
   background-color: silver;
   padding: 2px
 
-}
+}*/
 
 
 .leaflet-control-embed {
@@ -178,9 +178,40 @@ s {
 
 
 
+.topline {vertical-align:bottom; height: 24}
+
+.search {float:left;}
+.search input {padding-left:6px;padding:2px 9px; border:1px solid #a9a9a9; border-radius: 5px;}
+.search input[type=submit] {margin-left:2px;}
+
+.topmenu {float:right;}
+.topmenu a,.search input[type=submit] {
+  padding: 2px 9px;
+  margin-left:2px:
+  vertical-align:middle;
+  font-size:10pt;
+  background: #e4e4e4;
+  color: #000;
+  text-align: center;
+   text-decoration: none;
+   -moz-border-radius: 5px;
+   -webkit-border-radius: 5px;
+   -khtml-border-radius: 5px;
+   border-radius: 5px;
+  border:1px solid #a9a9a9; border-top:none; border-left:none;
+  text-shadow:0px 1px 1px #fff;
+ }
+.topmenu a:hover,.search input[type=submit]:hover { text-shadow:none;background:#aaa;color:#fff}
+
+.topmenu .lang {margin-left:10px;}
+.topmenu .lang a {padding:0px;background:none;border:none}
+.topmenu .lang a img {border:1px solid #e0e0e0;padding:0px;vertical-align:middle}
+.topmenu .lang a:hover img {border:1px solid #aaa;}
 
 
-
+.leaflet-control-zoom-locate,
+.leaflet-control-zoom-edit { margin-top:5px; }
+.leaflet-control-zoom-locate { background:url('/img/locate.png'); }
 
 
 

@@ -51,6 +51,7 @@ function updateRoute(){
     var polyline = new L.Polyline(lonlats,{color:color});
     routelayer.addLayer(polyline);
     if (data.distance>0){
+
       var prettydistance = ((Math.floor(data.distance)>0)?(Math.floor(data.distance) + _(" km")):'') +" ";
           prettydistance + (Math.floor((Math.floor(data.distance*1000))-1000*Math.floor(data.distance))>0) ? 
                           (Math.floor((Math.floor(data.distance*1000))-1000*Math.floor(data.distance)) + _("m")): _("exactly");
@@ -59,6 +60,7 @@ function updateRoute(){
           prettytime += ((((roundedtime>=60) && (roundedtime % 60)<10))?"0":'')+ (roundedtime % 60) + ((roundedtime<60)?' '+ _("min"):'');
       
       $("#statuspanel").html(
+        ((vehicle=="bike")?"<a href='http://2.osmosnimki.ru/route/api/dev/?via="+routePoints.join(';')+"&v=bike&fast=1&format=gpx'>"+_("Get route as GPX")+"</a><br />":"")+
         "<b>"+_("Route length:")+"</b> "+prettydistance+"<br />"+
         ((vehicle=='car' || vehicle == 'taxi')?("<b>"+_("Travel time:")+"</b> "+prettytime+"<br />"):'')
       );
