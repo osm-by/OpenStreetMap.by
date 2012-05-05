@@ -23,7 +23,7 @@ L.Control.Permalink = L.Class.extend({
       search();
     }
     if ("lang" in this._params){
-      if (this._params.lang in ['en','be']){
+      if (this._params.lang in ['en', 'be', 'ru']){
         locale = this._params.lang || locale || "be";
       }
       else{
@@ -50,6 +50,7 @@ L.Control.Permalink = L.Class.extend({
     this._params['lon'] = center.lng;
     delete this._params['via'];
     delete this._params['vehicle'];
+    delete this._params['lang'];
     if (routePoints.length > 1){
       this._params['via'] = routePoints.join(";");
       this._params['vehicle'] = vehicle;
@@ -63,6 +64,7 @@ L.Control.Permalink = L.Class.extend({
         $.cookie(i, this._params[i], {expires:7});
       }
     }
+    $.cookie("lang", locale, {expires:7});
 
     //this._href.setAttribute('href', this._url_base + "?" + url.join('&'));
     if (history.replaceState) {      history.replaceState({},"",this._url_base + "?" + url.join('&'));    };
@@ -114,6 +116,7 @@ L.Control.Permalink = L.Class.extend({
     }
 
     vehicle = params.vehicle || $.cookie('vehicle');
+    locale = params.lang || $.cookie('lang');
 
     if (this._centered) return;
 
