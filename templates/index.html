@@ -3,6 +3,9 @@
 <title>OpenStreetMap.by - Беларусь</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="description" content="$description" />
+<link rel="image_src" href="$snippeturl" />
+
+<meta http-equiv="X-UA-Compatible" content="chrome=1" />
 
 <link rel="stylesheet" href="/js/leaflet/leaflet.css" />
 <!--[if lte IE 8]><link rel="stylesheet" href="/js/leaflet/leaflet.ie.css" /><![endif]-->
@@ -20,6 +23,10 @@
 <link href="main.css" rel="stylesheet" />
 <link href="smallscreen.css" rel="stylesheet" media="only screen and (max-width:1024px)" />
 
+
+
+
+<script src="http://www.google.com/jsapi"></script>
 <script src="/js/permalink.js"></script>
 <script src="/js/search.js"></script>
 <script src="/js/breadcrumbs.js"></script>
@@ -45,6 +52,29 @@ locale="be";
 </head>
 
 <body marginheight="0" marginwidth="0">
+
+  <script type="text/javascript" 
+   src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js"></script>
+
+  <style>
+   /* 
+    CSS rules to use for styling the overlay:
+      .chromeFrameOverlayContent
+      .chromeFrameOverlayContent iframe
+      .chromeFrameOverlayCloseBar
+      .chromeFrameOverlayUnderlay
+   */
+  </style> 
+
+  <script>
+   // You may want to place these lines inside an onload handler
+   CFInstall.check({
+     mode: "overlay"
+   });
+  </script>
+
+
+
 <img src="/img/uho_on_white.png" id="uho" />
 <table border="0" cellspacing="0" cellpadding="0" width="100%" height="100%">
   <tr>
@@ -208,7 +238,12 @@ new TWTR.Widget({
                             'Zoom out', 'leaflet-control-zoom-out', this._map.zoomOut, this._map);
 
             this._zoomLocateButton = this._createButton(
-                            'Locate me!', 'leaflet-control-zoom-locate', function() { mmap.locateAndSetView();
+                            'Locate me!', 'leaflet-control-zoom-locate', function() { 
+                              from_geolocation = true;
+                              mmap.panTo(geopoint);     
+                              if (from_geolocation && !!routePoints[0][0]){
+                                routeFrom([0, 0]);
+                              }
                             //mmap.locateAndSetView({enableHighAccuracy: true}); 
                             });
 

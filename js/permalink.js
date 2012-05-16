@@ -7,6 +7,7 @@ L.Control.Permalink = L.Class.extend({
   onAdd: function(map) {
     map.on('moveend', this._update, this);
     this._map = map;
+    this._container = L.DomUtil.create('div', 'leaflet-control-attribution');
     /*
     this._container = L.DomUtil.create('div', 'leaflet-control-attribution');
     L.DomEvent.disableClickPropagation(this._container);
@@ -110,23 +111,31 @@ L.Control.Permalink = L.Class.extend({
     if (params.via != undefined) {
       routePoints = [];
       var i = params.via.split(";");
+      from_geolocation = false;
       for (j = 0; j < i.length; j++) {
-        routePoints.push([parseFloat(i[j].split(",")[0]), parseFloat(i[j].split(",")[1])]);
+        var k =[parseFloat(i[j].split(",")[0]), parseFloat(i[j].split(",")[1])];
+        if ((k[0] ==0 )&&(k[1]==0)){
+          from_geolocation = true;
+        }
+        routePoints.push(k);
       };
+      
     }
 
     vehicle = params.vehicle || $.cookie('vehicle');
     locale = params.lang || $.cookie('lang');
 
     if (this._centered) return;
+    
 
     if ((params.zoom == undefined) && ($.cookie('zoom')!= undefined)) { params.zoom = $.cookie('zoom')};
     if ((params.lat  == undefined) && ($.cookie('lat') != undefined)) { params.lat = $.cookie('lat') };
     if ((params.lon  == undefined) && ($.cookie('lon') != undefined)) { params.lon = $.cookie('lon') };
-
+    if ((params.lat == NaN) || (params.lon == NaN) || (params.zoom == NaN)) {params.lon = 0; params.lat=0; params.zoom=2}
     if (params.zoom == undefined ||
         params.lat == undefined ||
         params.lon == undefined) return;
+    
     this._centered = true;
 
     this._map.setView(new L.LatLng(params.lat, params.lon), params.zoom);

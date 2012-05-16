@@ -2,7 +2,7 @@ routelayer = new L.LayerGroup();
 routePoints = [];
 vehicle='car';
 currentRoute = {};
-  
+currequest = ''
   
 function updateRoute(){
 
@@ -14,30 +14,41 @@ function updateRoute(){
     vehicle != 'car'  &&
     vehicle != 'taxi' 
   ){vehicle = 'car'};
-  
+  var rtept = [];
   for (var i = 0; i < routePoints.length; i++){
     routePoints[i] = routePoints[i].join(",").split(",");
     routePoints[i] = [parseFloat(routePoints[i][0]).toFixed(6), parseFloat(routePoints[i][1]).toFixed(6)];
+    if ((parseFloat(routePoints[i][0]) == 0) &&  (parseFloat(routePoints[i][1]) == 0)){
+      rtept.push([geopoint.lng, geopoint.lat]);
+    } else {
+      rtept.push(routePoints[i]);
+    }
   }
   mmap.fire('moveend');
-  if (routePoints.length >= 1){
-    routelayer.addLayer(new L.Marker(new L.LatLng(routePoints[0][1], routePoints[0][0]),{draggable:true, title:'start'}).on('dragend', function(e){
+  var LeafIcon = L.Icon.extend({
+    iconUrl:'/img/finish.png',
+    iconSize: new L.Point(32, 37),
+    iconAnchor: new L.Point(16, 37)
+  })
+  if (rtept.length >= 1){
+    routelayer.addLayer(new L.Marker(new L.LatLng(rtept[0][1], rtept[0][0]),{icon:new LeafIcon('/img/start.png'), draggable:true, title:'start'}).on('dragend', function(e){
       routeFrom([e.target.getLatLng().lng,e.target.getLatLng().lat]);
     }));
   }
-  if (routePoints.length < 2){
+  if (rtept.length < 2){
     return false;
   };
-  var via = routePoints.join(";");
+  var via = rtept.join(";");
   
-  
+
   var vehrename = {car:'motorcar', bike:'bicycle', foot:'foot', taxi:'car'}
-  routelayer.addLayer(new L.Marker(new L.LatLng(routePoints[routePoints.length-1][1], routePoints[routePoints.length-1][0]),{draggable:true, title:'end'}).on('dragend', function(e){
+  routelayer.addLayer(new L.Marker(new L.LatLng(rtept[rtept.length-1][1], rtept[rtept.length-1][0]),{icon:new LeafIcon(),draggable:true, title:'end'}).on('dragend', function(e){
       routeTo([e.target.getLatLng().lng,e.target.getLatLng().lat]);
     }));
   
   $('body').css('cursor', 'wait');
-  $.getJSON("http://2.osmosnimki.ru/route/api/dev/?via="+via+"&v="+vehrename[vehicle]+"&fast=1&format=json&callback=?", function(data){
+  if (currequest) {currequest.abort();};
+  currequest = $.getJSON("http://2.osmosnimki.ru/route/api/dev/?via="+via+"&v="+vehrename[vehicle]+"&fast=1&format=json&callback=?", function(data){
     currentRoute = data;
     var lonlats = []
     for (var i=0; i<data.path[0].length; i++){
@@ -60,7 +71,7 @@ function updateRoute(){
           prettytime += ((((roundedtime>=60) && (roundedtime % 60)<10))?"0":'')+ (roundedtime % 60) + ((roundedtime<60)?' '+ _("min"):'');
       
       $("#statuspanel").html(
-        ((vehicle=="bike")?"<a href='http://2.osmosnimki.ru/route/api/dev/?via="+routePoints.join(';')+"&v=bike&fast=1&format=gpx'>"+_("Get route as GPX")+"</a><br />":"")+
+        ((vehicle=="bike")?"<a href='http://2.osmosnimki.ru/route/api/dev/?via="+rtept.join(';')+"&v=bike&fast=1&format=gpx'>"+_("Get route as GPX")+"</a><br />":"")+
         "<b>"+_("Route length:")+"</b> "+prettydistance+"<br />"+
         ((vehicle=='car' || vehicle == 'taxi')?("<b>"+_("Travel time:")+"</b> "+prettytime+"<br />"):'')
       );
@@ -84,6 +95,7 @@ function updateRoute(){
     }
     $('body').css('cursor', 'auto');
   });
+  
    
 }
 
@@ -104,8 +116,13 @@ function routeTo(a){
 }
 
 function canRouteTaxi(){
-  var rp = routePoints;
-  for (var i = 0; i < rp.length; i++){
+  var rp = [];
+  for (var i = 0; i < routePoints.length; i++){
+    if ((parseFloat(routePoints[i][0]) == 0) &&  (parseFloat(routePoints[i][1]) == 0)){
+      rp.push([geopoint.lng, geopoint.lat]);
+    } else {
+      rp.push(routePoints[i]);
+    }
     if (!((rp[i][0]>27.3699984458077) && (rp[i][0]<28.0895335373645) && (rp[i][1]>53.7928745722116) && (rp[i][1] < 53.9742910534496))){
       return false;
     }

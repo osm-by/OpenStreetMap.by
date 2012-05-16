@@ -22,7 +22,7 @@
 function context_menu(e){
   
   wherenow = round_point(mmap.mouseEventToLatLng(e));
-  console.log(wherenow);
+  
   var menu = [];
   var item = {};
   item[ wherenow.lat+', '+wherenow.lng] = {onclick:function(menuItemClicked,menuObject) { mmap.panTo(wherenow); }};
@@ -31,14 +31,14 @@ function context_menu(e){
   
   if (routePoints.length < 1) {
       var item = {};
-      item[ _("Route to here")] = {onclick:function(menuItemClicked,menuObject) { routeTo([wherenow.lng, wherenow.lat]) }};
+      item[ _("Route to here")] = {onclick:function(menuItemClicked,menuObject) { routeTo([wherenow.lng, wherenow.lat]); routeFrom([0,0]) }};
       menu.push(item);
   }
   
   if (routePoints.length >= 1) {
 
       var item = {};
-      item[ _("Route from here")] = {onclick:function(menuItemClicked,menuObject) { routeFrom([wherenow.lng, wherenow.lat]) }};
+      item[ _("Route from here")] = {onclick:function(menuItemClicked,menuObject) {from_geolocation = false; routeFrom([wherenow.lng, wherenow.lat]) }};
       menu.push(item);
       
       var item = {};
@@ -62,7 +62,7 @@ function context_menu(e){
       menu.push(item);
       
       var item = {};
-      item[ _("Clear route")] = {onclick:function(menuItemClicked,menuObject) { routePoints = []; updateRoute(); }, icon:"/img/delete_icon.gif"};
+      item[ _("Clear route")] = {onclick:function(menuItemClicked,menuObject) {from_geolocation = true; routePoints = []; updateRoute(); }, icon:"/img/delete_icon.gif"};
       menu.push(item);
   }
   
