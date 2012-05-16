@@ -275,7 +275,7 @@ def geocoder_geocode(text,(lon,lat)):
           for k,v in cities.iteritems():
             if (' ' + word + ' ') in k:
               citycandidates[k] = v
-              found = True
+              #found = True
               # no inexact substring checks - please write names fully
 
           ## Checking streets
@@ -283,6 +283,11 @@ def geocoder_geocode(text,(lon,lat)):
             if (' ' + word + ' ') in k:
               candidates[k] = v
               found = True
+          if not found:
+            for k,v in rustreets.iteritems():
+              if (' ' + word) in k:
+                candidates[k] = v
+                found = True
           if not found:
             for k,v in rustreets.iteritems():
               if word in k:
@@ -670,14 +675,28 @@ def face_main(data):
         lon = 27.57946014404297
       zoom = 8
     description = "OpenStreetMap Беларусь. Карта, рисуемая людьми."
+    import math
+    def deg2num(lat_deg, lon_deg, zoom):
+      lat_rad = math.radians(lat_deg)
+      n = 2.0 ** zoom
+      xtile = ((lon_deg + 180.0) / 360.0 * n)
+      ytile = ((1.0 - math.log(math.tan(lat_rad) + (1 / math.cos(lat_rad))) / math.pi) / 2.0 * n)
+      return (xtile, ytile)
+    snippeturl = ""
     if data.get("lat"):
-      description = [i[1] for i in geocoder_describe((lon,lat), zoom, locale)]
-      description.reverse()
-      description = ", ".join(description) + " на картах OpenStreetMap Беларусь"
-      description.replace('"','')
-    a = render.index( _=i18n, longitude=lon, latitude=lat, zoom=zoom, description=description)
+      offzoom = int(max(zoom-2,0))
+      
+      snippeturl = "http://twms.kosmosnimki.ru/?layers=osm&request=GetTile&z=%s&x=%s&y=%s&format=image/png"%(offzoom, deg2num(lat,lon,offzoom)[0]-.5,deg2num(lat,lon,offzoom)[1]-.5)
+      try:
+        description = [i[1] for i in geocoder_describe((lon,lat), zoom, locale)]
+        description.reverse()
+        description = ", ".join(description) + " на картах OpenStreetMap Беларусь"
+        description.replace('"','')
+      except:
+        pass
+    a = render.index( _=i18n, longitude=lon, latitude=lat, zoom=zoom, description=description, snippeturl = snippeturl)
     if data.get("beta"):
-      a = render.indexb( _=i18n, longitude=lon, latitude=lat, zoom=zoom, description=description)
+      a = render.indexb( _=i18n, longitude=lon, latitude=lat, zoom=zoom, description=description, snippeturl = snippeturl)
   return OK, content_type, a
 
 
