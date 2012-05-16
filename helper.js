@@ -1,4 +1,10 @@
+if (google.loader.ClientLocation){
+  geopoint = new L.LatLng(google.loader.ClientLocation.latitude, google.loader.ClientLocation.longitude);
+} else {
+  geopoint = mmap.getCenter();
+}
 
+//from_geolocation = true;
 
 
 josm_remote = false;
@@ -77,6 +83,17 @@ $("#downloadlink").show().click(function(){
 
 $.contextMenu.theme = 'osx';
 $(".leaflet-map-pane").contextMenu( context_menu );
+
+
+mmap.on('locationfound', function(e){
+  geopoint = e.latlng;
+  if (from_geolocation && routePoints){
+    routeFrom([0, 0]);
+    mmap.panTo(geopoint);
+  }
+})
+
+mmap.locate({'watch':true, 'enableHighAccuracy': true, 'maximumAge': 30})
 
 
 updateRoute();
