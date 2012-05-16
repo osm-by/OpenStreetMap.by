@@ -289,7 +289,7 @@ def geocoder_describe((lon,lat), zoom, locale):
     req = """
       select
           {way},
-          COALESCE( {name} || ' (' || ref || ')', {name}, ref),
+          coalesce({name}, ''),
           coalesce(oneway, 'no'),
           ST_Azimuth(
   ST_Line_Interpolate_Point(l.way,
@@ -297,7 +297,7 @@ def geocoder_describe((lon,lat), zoom, locale):
   ST_Line_Interpolate_Point(l.way,
   case when (ST_Line_Locate_Point(l.way,{geom})+0.01 > 1) then 1 else ST_Line_Locate_Point(l.way,{geom})+0.0000001 end)
   )/(2*pi())*360,
-          COALESCE( "name" || ' (' || ref || ')', "name", ref)
+          coalesce(ref, '')
       from planet_osm_line l
       where
           ST_Intersects(way, ST_Expand({geom}, {distance}))
@@ -310,45 +310,47 @@ def geocoder_describe((lon,lat), zoom, locale):
     z = database_cursor.fetchall()
     if z:
       descr["approx"]["addr:street"] = ";".join([i[1] for i in z])
+      descr["approx"]["addr:street:ref"] = ";".join([i[4] for i in z])
       descr["tech"]["oneway"] = ";".join([i[2] for i in z])=="yes"
       descr["tech"]["azimuth"] = ([i[3] for i in z])[0]
       params["street"] = ";".join([i[4] for i in z]).replace("'",'')
 
-
-      """addr:kilometre"""
-      
-      req = """
-        select
-            'no wai',
-            replace(replace(lower(p.pk),' ',''),'km', '') as pk,
-            ST_Azimuth(
-    ST_Line_Interpolate_Point(l.way,
-    case when (ST_Line_Locate_Point(l.way,{geom})-0.0001 < 0) then 0 else ST_Line_Locate_Point(l.way,{geom})-0.0001 end),
-    ST_Line_Interpolate_Point(l.way,
-    case when (ST_Line_Locate_Point(l.way,{geom})+0.0001 > 1) then 1 else ST_Line_Locate_Point(l.way,{geom})+0.0001 end)
-    )/(2*pi())*360,
-            ST_X(p.way) - ST_X({geom}),
-            ST_Y(p.way) - ST_Y({geom})
-        from planet_osm_point p
-        join planet_osm_line l on (ST_DWithin(p.way,l.way, 2) and COALESCE( l.name || ' (' || l.ref || ')', l.name, l.ref) = '{street}')
-        where
-            ST_Intersects(p.way, ST_Expand({geom}, 1200))
-            and p."highway"='milestone'
-            and p.pk is not NULL
-        order by ST_Distance(p.way, {geom})
-        limit 10;""".format(**params)
-      database_cursor.execute(req)
-      z = database_cursor.fetchall()
-      
-      descr["approx"]["addr:kilometre"] = ";".join([i[1] for i in z])
-      if len(z) > 1:
-        z.sort(lambda x,y: int(100000*(   abs((y[2] - descr["tech"]["azimuth"])%360) - abs((x[2] - descr["tech"]["azimuth"])%360)) ) )
-        #z = [i for i in z if (abs(i[2]-descr["tech"]["azimuth"])%360)< 140]
-        p1 = z[0]
-        p2 = z[1]
-        descr["approx"]["addr:kilometre"] = float(p2[1]) - (float(p2[1])-float(p1[1]))*(p1[4]/(p1[4]-p2[4]) + p1[2]/(p1[3]-p2[3]))/2
+      if params["street"]:
+        """addr:kilometre"""
+        # only useful on ref-ed streets
         
-      #descr["tech"]["pk"] = z
+        req = """
+          select
+              'no wai',
+              replace(replace(lower(p.pk),' ',''),'km', '') as pk,
+              ST_Azimuth(
+      ST_Line_Interpolate_Point(l.way,
+      case when (ST_Line_Locate_Point(l.way,{geom})-0.0001 < 0) then 0 else ST_Line_Locate_Point(l.way,{geom})-0.0001 end),
+      ST_Line_Interpolate_Point(l.way,
+      case when (ST_Line_Locate_Point(l.way,{geom})+0.0001 > 1) then 1 else ST_Line_Locate_Point(l.way,{geom})+0.0001 end)
+      )/(2*pi())*360,
+              ST_X(p.way) - ST_X({geom}),
+              ST_Y(p.way) - ST_Y({geom})
+          from planet_osm_point p
+          join planet_osm_line l on (ST_DWithin(p.way,l.way, 2) and l.ref= '{street}')
+          where
+              ST_Intersects(p.way, ST_Expand({geom}, 1200))
+              and p."highway"='milestone'
+              and p.pk is not NULL
+          order by ST_Distance(p.way, {geom})
+          limit 10;""".format(**params)
+        database_cursor.execute(req)
+        z = database_cursor.fetchall()
+        
+        descr["approx"]["addr:kilometre"] = ";".join([i[1] for i in z])
+        if len(z) > 1:
+          z.sort(lambda x,y: int(100000*(   abs((y[2] - descr["tech"]["azimuth"])%360) - abs((x[2] - descr["tech"]["azimuth"])%360)) ) )
+          #z = [i for i in z if (abs(i[2]-descr["tech"]["azimuth"])%360)< 140]
+          p1 = z[0]
+          p2 = z[1]
+          descr["approx"]["addr:kilometre"] = float(p2[1]) - (float(p2[1])-float(p1[1]))*(p1[4]/(p1[4]-p2[4]) + p1[2]/(p1[3]-p2[3]))/2
+          
+        #descr["tech"]["pk"] = z
 
 
 
