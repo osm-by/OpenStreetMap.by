@@ -6,7 +6,6 @@ if (google.loader.ClientLocation){
 
 //from_geolocation = true;
 
-
 josm_remote = false;
 
 if (!$.cookie('userid')){
@@ -20,21 +19,19 @@ $().ready( function(){
   mmap.attributionControl.setPrefix("");
   
   
-  var kosmoUrl = 'http://{s}.tile.osmosnimki.ru/kosmo-be/{z}/{x}/{y}.png';
+  var kosmoUrl = 'http://{s}.tile.openstreetmap.by:3128/osmby-be/{z}/{x}/{y}.png';
   
   if (locale == 'en'){
-    var kosmoUrl = 'http://{s}.tile.osmosnimki.ru/kosmo-en/{z}/{x}/{y}.png';
+    var kosmoUrl = 'http://{s}.tile.openstreetmap.by:3128/osmby-en/{z}/{x}/{y}.png';
   } else if (locale == 'ru') {
-    var kosmoUrl = 'http://{s}.tile.osmosnimki.ru/kosmo/{z}/{x}/{y}.png';
+    var kosmoUrl = 'http://{s}.tile.openstreetmap.by:3128/osmby-ru/{z}/{x}/{y}.png';
   } else if (locale == 'be') {
-    var kosmoUrl = 'http://{s}.tile.osmosnimki.ru/kosmo-be/{z}/{x}/{y}.png';
-  } else if (locale == 'none') {
-    var kosmoUrl = 'http://{s}.tile.osmosnimki.ru/kosmo-blank/{z}/{x}/{y}.png';
-  }
+    var kosmoUrl = 'http://{s}.tile.openstreetmap.by:3128/osmby-be/{z}/{x}/{y}.png';
+  }// else if (locale == 'none') {
+    //var kosmoUrl = 'http://{s}.tile.osmosnimki.ru/kosmo-blank/{z}/{x}/{y}.png';
+ // }
 
-
-  
-  kosmo = new L.TileLayer(kosmoUrl, {maxZoom: 18, attribution: _("Map data © <a href='http://osm.org'>OpenStreetMap</a> contributors, CC-BY-SA; rendering by <a href='http://kosmosnimki.ru'>kosmosnimki.ru</a>")});
+  kosmo = new L.TileLayer(kosmoUrl, {maxZoom: 18, attribution: _("Map data © <a href='http://osm.org'>OpenStreetMap</a> contributors")});
   mmap.addControl(new L.Control.Breadcrumbs());
   
   mmap.addLayer(kosmo);
@@ -47,10 +44,7 @@ $().ready( function(){
         map_click(e.latlng);
       }
     })
-  
   mmap.addControl(new L.Control.Embed());
-  
-  
 
 $("#osbreport").dialog(
   {
