@@ -15,6 +15,9 @@ import time
 reload(sys)
 sys.setdefaultencoding("utf-8")          # a hack to support UTF-8
 
+
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 from lxml import etree
 
 web.config.debug = False
@@ -23,7 +26,7 @@ from web.contrib.template import render_cheetah
 
 
 
-GeoIpCache = GeoIP.open('/srv/www/openstreetmap.by/htdocs/GeoLiteCity.dat', GeoIP.GEOIP_MEMORY_CACHE)
+GeoIpCache = GeoIP.open('GeoLiteCity.dat', GeoIP.GEOIP_MEMORY_CACHE)
 pg_database = "dbname=gis user=gis"
 
 LOCALES = ['be', 'ru', 'en', 'none']
@@ -227,8 +230,8 @@ def geocoder_geocode(text,(lon,lat)):
       text = text.replace(",", ", ")
       text = text.replace("ё", "е")
       text = text.lower().split()
-      rustreets = dict([(' ' + unicode(line).lower().split('#')[0].strip().replace('ё','е') + ' ', unicode(line).split('#')[0].strip()) for line in open("/srv/www/openstreetmap.by/htdocs/ru.txt","r")])
-      cities = dict([(' ' + unicode(line).lower().strip().replace('ё','е') + ' ', unicode(line).strip()) for line in open("/srv/www/openstreetmap.by/htdocs/cities.txt","r")])
+      rustreets = dict([(' ' + unicode(line).lower().split('#')[0].strip().replace('ё','е') + ' ', unicode(line).split('#')[0].strip()) for line in open("ru.txt","r")])
+      cities = dict([(' ' + unicode(line).lower().strip().replace('ё','е') + ' ', unicode(line).strip()) for line in open("cities.txt","r")])
       candidates = {}
       citycandidates = {}
       hnos = []
@@ -587,11 +590,11 @@ def face_main(data):
     a["results"] = geocoder_geocode(text,(lon,lat))
 
     try:
-      logfile = open('/srv/www/openstreetmap.by/htdocs/req.txt', "a")
+      logfile = open('req.txt', "a")
       print >> logfile, len(a["results"]), lon, lat, text
       logfile.close()
       if len(a["results"]) == 0:
-        logfile = open('/srv/www/openstreetmap.by/htdocs/notfound.txt', "a")
+        logfile = open('notfound.txt', "a")
         print >> logfile, len(a["results"]), lon, lat, text
         logfile.close()
     except:
