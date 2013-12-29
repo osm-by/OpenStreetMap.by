@@ -83,36 +83,8 @@ locale="be";
       
       <script src="http://widgets.twimg.com/j/2/widget.js"></script>
 <script>
-new TWTR.Widget({
-  version: 2,
-  type: 'search',
-  search: '#osmby OR from:osmbelarus OR to:osmbelarus OR @osmbelarus -freebsdhosting',
-  rpp: 4,
-  interval: 6000,
-  width: 256,
-  height: 300,
-  theme: {
-    shell: {
-      background: '#90b8db',
-      color: '#ffffff'
-    },
-    tweets: {
-      background: '#ffffff',
-      color: '#000000',
-      links: '#0022ff'
-    }
-  },
-  features: {
-    scrollbar: false,
-    loop: false,
-    live: false,
-    hashtags: true,
-    timestamp: false,
-    avatars: true,
-    behavior: 'all'
-  }
-}).render().start();
-
+<a class="twitter-timeline" data-dnt="true" href="https://twitter.com/search?q=%23osmby+OR+from%3Aosmbelarus+OR+to%3Aosmbelarus+OR+%40osmbelarus+-freebsdhosting+OR+from%3Ashtosm" data-widget-id="417294587544100864">Tweets about "#osmby OR from:osmbelarus OR to:osmbelarus OR @osmbelarus -freebsdhosting OR from:shtosm"</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
 </script></td></tr></table>
     </td>
     <td>
@@ -227,7 +199,7 @@ new TWTR.Widget({
 
 
       // Zoom control patching to insert more buttons
-    L.Control.Zoom = L.Control.Zoom.extend({
+    /*L.Control.Zoom = L.Control.Zoom.extend({
         onAdd: function (map) {
             this._map = _map = map;
             this._container = L.DomUtil.create('div', 'leaflet-control-zoom');
@@ -254,7 +226,7 @@ new TWTR.Widget({
             this._container.appendChild(this._zoomLocateButton);
         }
     });
-
+*/
 
   mmap = new L.Map('map', {
     center: new L.LatLng($latitude, $longitude),
