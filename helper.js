@@ -32,19 +32,19 @@ $().ready( function(){
  // }
 
   kosmo = new L.TileLayer(kosmoUrl, {maxZoom: 18, attribution: _("Map data © <a href='http://osm.org'>OpenStreetMap</a> contributors")});
-  mmap.addControl(new L.Control.Breadcrumbs());
+  //mmap.addControl(new L.Control.Breadcrumbs());
   
   mmap.addLayer(kosmo);
   
-  mmap.addControl(new L.Control.Dirty(kosmo));
-  mmap.addControl(new L.Control.StatusPanel());
+  //mmap.addControl(new L.Control.Dirty(kosmo));
+  //mmap.addControl(new L.Control.StatusPanel());
   
   mmap.on('click', function(e){
       if (mmap.getZoom()>14){
         map_click(e.latlng);
       }
     })
-  mmap.addControl(new L.Control.Embed());
+  //mmap.addControl(new L.Control.Embed());
 
 $("#osbreport").dialog(
   {
@@ -90,7 +90,7 @@ mmap.on('locationfound', function(e){
 mmap.locate({'watch':true, 'enableHighAccuracy': true, 'maximumAge': 30})
 
 
-updateRoute();
+//updateRoute();
 //mmap.addControl(new L.Crosshair());
 
 
