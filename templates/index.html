@@ -113,7 +113,7 @@ locale="be";
     </td>
   </tr>
 </table>
-<div id="embeddialog" style="font-size:medium">
+<div id="embeddialog" style="font-size:medium; display: none" >
 
 <form>
 <span><input type="checkbox" id="embed_crosshair" value="true"><label for="embed_crosshair">Crosshair</label></span>
@@ -213,24 +213,8 @@ locale="be";
     touchZoom: L.Browser.touch
   });
   mmap.addControl(new L.Control.Permalink());
-  
-
-  
 //--></script>
 <script src="/js/i18n.js"></script>
 <script src="helper.js"></script>
-
-<!-- Piwik --> 
-<script type="text/javascript">
-var pkBaseURL = (("https:" == document.location.protocol) ? "https://openstreetmap.by/piwik/" : "http://openstreetmap.by/piwik/");
-document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
-</script><script type="text/javascript">
-try {
-var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 1);
-piwikTracker.trackPageView();
-piwikTracker.enableLinkTracking();
-} catch( err ) {}
-</script><noscript><p><img src="http://openstreetmap.by/piwik/piwik.php?idsite=1" style="border:0" alt="" /></p></noscript>
-<!-- End Piwik Tracking Code -->
 </body>
 </html>
