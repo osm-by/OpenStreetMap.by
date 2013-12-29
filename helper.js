@@ -46,18 +46,6 @@ $().ready( function(){
     })
   //mmap.addControl(new L.Control.Embed());
 
-$("#osbreport").dialog(
-  {
-    autoOpen: false,
-    title: _('Report a problem on map'),
-    width: 750,
-    height: 480,
-    modal: true
-  }
-);
-$("#osbreport_send").click(reportOSB);
-
-
 
 $("#downloadmaps").dialog(
   {
@@ -69,7 +57,7 @@ $("#downloadmaps").dialog(
     }).tabs({
    load: function(event, ui) { refreshLocales(); }
 });
-    
+
 $("#downloadlink").show().click(function(){
   $("#downloadmaps").dialog('open');
   return false;
@@ -81,17 +69,8 @@ $(".leaflet-map-pane").contextMenu( context_menu );
 
 mmap.on('locationfound', function(e){
   geopoint = e.latlng;
-  if (from_geolocation && routePoints){
-    routeFrom([0, 0]);
-    mmap.panTo(geopoint);
-  }
 })
 
 mmap.locate({'watch':true, 'enableHighAccuracy': true, 'maximumAge': 30})
-
-
-//updateRoute();
-//mmap.addControl(new L.Crosshair());
-
 
 });

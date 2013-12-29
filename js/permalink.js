@@ -1,4 +1,13 @@
-L.Control.Permalink = L.Class.extend({
+L.Control.Permalink = L.Control.extend({
+      includes: L.Mixin.Events, 
+
+        options: {
+                position: "bottomleft",
+                useAnchor: true,
+                useLocation: false,
+                text: "Permalink"
+        },
+
   initialize: function() {
     this._set_urlvars();
     this._centered = false;
