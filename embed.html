@@ -4,12 +4,11 @@
 <title>OpenStreetMap.by - embeddable map</title> 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
  
-<link rel="stylesheet" href="/js/leaflet/leaflet.css" /> 
-<!--[if lte IE 8]><link rel="stylesheet" href="/js/leaflet/leaflet.ie.css" /><![endif]--> 
-<script src="/js/leaflet/leaflet.js"></script> 
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.css" />
+<script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js?2"></script>
  
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script> 
-<script src="/js/crosshair.js"></script> 
+<script src="js/crosshair.js"></script> 
 
 <script type="text/javascript"> 
 var mmap; 
@@ -55,15 +54,15 @@ var json_in_progress = false;
 
     // configuring map
     if (params.lang == 'ru'){
-      var kosmoUrl = 'http://{s}.tile.openstreetmap.by/osmby-ru/{z}/{x}/{y}.png';
+      var kosmoUrl = 'http://{s}.tile.openstreetmap.by:3128/osmby-ru/{z}/{x}/{y}.png';
       var kosmo = new L.TileLayer(kosmoUrl, {maxZoom: 18, attribution: "Карта © Участники <a href='http://openstreetmap.by/' target='_top'>OpenStreetMap</a>"}); 
     }
     if (params.lang == 'be'){
-      var kosmoUrl = 'http://{s}.tile.openstreetmap.by/osmby-be/{z}/{x}/{y}.png';
+      var kosmoUrl = 'http://{s}.tile.openstreetmap.by:3128/osmby-be/{z}/{x}/{y}.png';
       var kosmo = new L.TileLayer(kosmoUrl, {maxZoom: 18, attribution: "Мапа © Удзельнікі <a href='http://openstreetmap.by/' target='_top'>OpenStreetMap</a>"}); 
     }
     if (params.lang == 'en'){
-      var kosmoUrl = 'http://{s}.tile.openstreetmap.by/osmby-en/{z}/{x}/{y}.png';    
+      var kosmoUrl = 'http://{s}.tile.openstreetmap.by:3128/osmby-en/{z}/{x}/{y}.png';    
       var kosmo = new L.TileLayer(kosmoUrl, {maxZoom: 18, attribution: "Map data © <a href='http://openstreetmap.by/' target='_top'>OpenStreetMap</a> contributors"}); 
     }
 
