@@ -7,8 +7,8 @@
 
 <meta http-equiv="X-UA-Compatible" content="chrome=1" />
 
-<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.css" />
-<script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js?2"></script>
+<script src="https://api.tiles.mapbox.com/mapbox-gl-js/v0.21.0/mapbox-gl.js"></script>
+<link href="https://api.tiles.mapbox.com/mapbox-gl-js/v0.21.0/mapbox-gl.css" rel="stylesheet" />
 
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css" />
 
@@ -27,20 +27,21 @@
 
 
 <script src="http://www.google.com/jsapi"></script>
-<script src="/js/permalink.js"></script>
+<!--<script src="/js/permalink.js"></script>-->
 <script src="/js/search.js"></script>
-<script src="/js/breadcrumbs.js"></script>
+<!--<script src="/js/breadcrumbs.js"></script>
 <script src="/js/crosshair.js"></script>
 <script src="/js/dirty.js"></script>
-<script src="/js/embed.js"></script>
+<script src="/js/embed.js"></script>-->
 <script src="/js/i18n.js"></script>
 <script src="/js/map_click.js"></script>
 <script src="/js/jquery.cookie.js"></script>
 <script src="/js/jquery.longclick.js"></script>
 <script src="/js/jquery.contextmenu.js"></script>
 <script src="/js/context.js"></script>
-<script src="/js/route.js"></script>
-<script src="/js/statuspanel.js"></script>
+<!--<script src="/js/route.js"></script>
+<script src="/js/statuspanel.js"></script>-->
+<script src="/js/map_language.js"></script>
 
 <script type="text/javascript">
 var mmap;
@@ -92,6 +93,7 @@ locale="be";
         <span class="lang">
           <a href="/?lang=en"><img src="img/png/gb.png"></a>
           <a href="/?lang=be"><img src="img/png/by.png"></a>
+          <a href="/?lang=be_tarask"><img src="img/png/by.png"></a>
           <a href="/?lang=ru"><img src="img/png/ru.png"></a>
         </span>
       </div>
@@ -207,12 +209,16 @@ locale="be";
     });
 */
 
-  mmap = new L.Map('map', {
-    center: new L.LatLng($latitude, $longitude),
+  mmap = new mapboxgl.Map({
+    container: 'map',
+    style: 'bright-v9-cdn.json',
+    center: [$longitude, $latitude], //lng lat
     zoom: $zoom,
-    touchZoom: L.Browser.touch
+    hash: true
   });
-  mmap.addControl(new L.Control.Permalink());
+  mmap.on('load', function() {
+    setMapLanguage(mmap, locale);
+  });
 //--></script>
 <script src="/js/i18n.js"></script>
 <script src="helper.js"></script>
