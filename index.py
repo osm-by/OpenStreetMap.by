@@ -555,7 +555,7 @@ def face_main(data):
   render = render_cheetah('templates/')
   a = ""
   locale = data.get("locale","be")
-  userip = os.environ["REMOTE_ADDR"]
+  userip = os.environ.get("REMOTE_ADDR", "0.0.0.0")
   
   if locale not in ('en','ru','be'):
     locale = "be"
