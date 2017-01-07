@@ -391,8 +391,9 @@ where
     %s
     )
 order by distance limit %s;""" % (
-                itags, lon, lat, wherestreets, escaped_hnos, wherecities, itags, lon, lat, wherestreets, escaped_hnos,
-                wherecities, countlimit)
+                    itags, lon, lat, wherestreets, escaped_hnos, wherecities, itags, lon, lat, wherestreets,
+                    escaped_hnos,
+                    wherecities, countlimit)
                 descr = postgis_query_geojson(req)
                 if descr:
                     return descr
@@ -412,7 +413,7 @@ order by distance limit %s;""" % (
      %s
     )
     order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;""" % (
-                itags, escaped_can, like_hnos, wherecities, lon, lat, countlimit)
+                    itags, escaped_can, like_hnos, wherecities, lon, lat, countlimit)
                 descr = postgis_query_geojson(req)
                 if descr:
                     return descr
@@ -444,8 +445,8 @@ where
     %s
     )
 order by distance limit %s;""" % (
-                itags, lon, lat, escaped_can, escaped_hnos, '', itags, lon, lat, escaped_can, escaped_hnos, "",
-                countlimit)
+                    itags, lon, lat, escaped_can, escaped_hnos, '', itags, lon, lat, escaped_can, escaped_hnos, "",
+                    countlimit)
                 descr = postgis_query_geojson(req)
                 if descr:
                     return descr
@@ -465,7 +466,7 @@ order by distance limit %s;""" % (
      %s
     )
     order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;""" % (
-                itags, escaped_can, like_hnos, "", lon, lat, countlimit)
+                    itags, escaped_can, like_hnos, "", lon, lat, countlimit)
                 descr = postgis_query_geojson(req)
                 if descr:
                     return descr
@@ -480,7 +481,7 @@ order by distance limit %s;""" % (
   ("name" in %s or "name:en" in %s )
   %s
   order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;""" % (
-                itags, escaped_can, escaped_can, wherecities, lon, lat, countlimit)
+                    itags, escaped_can, escaped_can, wherecities, lon, lat, countlimit)
                 descr = postgis_query_geojson(req)
                 if descr:
                     return descr
@@ -494,7 +495,7 @@ order by distance limit %s;""" % (
   ("name" in %s)
   and (place in ('city', 'town', 'village', 'hamlet', 'locality') or admin_level in ('4','8','9','10'))
   order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;""" % (
-                itags, sqlcities, lon, lat, countlimit)
+                    itags, sqlcities, lon, lat, countlimit)
                 descr = postgis_query_geojson(req)
                 if descr:
                     return descr
@@ -512,7 +513,7 @@ order by distance limit %s;""" % (
        "name:en" = E'%s'
        )
     order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;""" % (
-        itags, otext, otext, otext, lon, lat, countlimit)
+            itags, otext, otext, otext, lon, lat, countlimit)
         descr = postgis_query_geojson(req)
         if descr:
             return descr
@@ -554,7 +555,7 @@ def organisations_around_point((lon, lat), locale):
       and (p.amenity is not NULL or p.shop is not NULL or p.office is not NULL or (p.tags->'craft') is not NULL)
       )
   order by ST_Distance(p.way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;""" % (
-    namestring, lon, lat, lon, lat, lon, lat, countlimit)
+        namestring, lon, lat, lon, lat, lon, lat, countlimit)
 
     descr = postgis_query_geojson(req)
     if descr:
@@ -568,8 +569,7 @@ def i18n(aaaa):
 def face_main(data):
     content_type = "text/html"
     render = render_cheetah('templates/')
-    a = ""
-    locale = data.get("locale", "be")
+    locale = data.get("locale", data.get("lang", "be"))
     userip = os.environ.get("REMOTE_ADDR", "0.0.0.0")
 
     if locale not in ('en', 'ru', 'be'):
@@ -584,8 +584,7 @@ def face_main(data):
         r = redis.Redis(host='localhost', port=6379, db=0)
         r.rpush("osmbyusers:" + userip + ":" + userid, json.dumps([lat, lon, zoom, locale, time.time()]))
         r.expire("osmbyusers:" + userip + ":" + userid, 3600)
-        a = {}
-        a["breadcrumbs"] = geocoder_describe((lon, lat), zoom, locale)
+        a = {"breadcrumbs": geocoder_describe((lon, lat), zoom, locale)}
         a = json.dumps(a, ensure_ascii=False)
 
     elif data.get('request') == 'getusersnow':
@@ -603,8 +602,7 @@ def face_main(data):
         lat = float(data.get("lat", 53.9))
         lon = float(data.get("lon", 27.5))
         text = data.get("text", 'Minsk')
-        a = {}
-        a["results"] = geocoder_geocode(text, (lon, lat))
+        a = {"results": geocoder_geocode(text, (lon, lat))}
 
         try:
             logfile = open('req.txt', "a")
@@ -623,9 +621,7 @@ def face_main(data):
         content_type = "text/javascript"
         lat = float(data.get("lat", 53.9))
         lon = float(data.get("lon", 27.5))
-        a = {}
-        a["results"] = organisations_around_point((lon, lat), locale)
-        a["coords"] = (lon, lat)
+        a = {"results": organisations_around_point((lon, lat), locale), "coords": (lon, lat)}
         a = json.dumps(a, ensure_ascii=False)
     elif data.get('request') == 'leech':
         page = data.get('page', 'navitel')
@@ -678,7 +674,7 @@ def face_main(data):
             offzoom = int(max(zoom - 2, 0))
 
             snippeturl = "http://twms.kosmosnimki.ru/?layers=osm&request=GetTile&z=%s&x=%s&y=%s&format=image/png" % (
-            offzoom, deg2num(lat, lon, offzoom)[0] - .5, deg2num(lat, lon, offzoom)[1] - .5)
+                offzoom, deg2num(lat, lon, offzoom)[0] - .5, deg2num(lat, lon, offzoom)[1] - .5)
             try:
                 description = [i[1] for i in geocoder_describe((lon, lat), zoom, locale)]
                 description.reverse()
@@ -686,9 +682,10 @@ def face_main(data):
                 description.replace('"', '')
             except:
                 pass
-        a = render.index(_=i18n, locale = locale, longitude=lon, latitude=lat, zoom=zoom, description=description, snippeturl=snippeturl)
+        a = render.index(_=i18n, locale=locale, longitude=lon, latitude=lat, zoom=zoom, description=description,
+                         snippeturl=snippeturl)
         if data.get("beta"):
-            a = render.indexb(_=i18n, locale = locale, longitude=lon, latitude=lat, zoom=zoom, description=description,
+            a = render.indexb(_=i18n, locale=locale, longitude=lon, latitude=lat, zoom=zoom, description=description,
                               snippeturl=snippeturl)
     return OK, content_type, a
 
