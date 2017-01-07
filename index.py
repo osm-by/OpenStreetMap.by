@@ -13,8 +13,7 @@ import redis
 import time
 
 reload(sys)
-sys.setdefaultencoding("utf-8")          # a hack to support UTF-8
-
+sys.setdefaultencoding("utf-8")  # a hack to support UTF-8
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -24,8 +23,6 @@ web.config.debug = False
 
 from web.contrib.template import render_cheetah
 
-
-
 GeoIpCache = GeoIP.open('GeoLiteCity.dat', GeoIP.GEOIP_MEMORY_CACHE)
 pg_database = "dbname=gis user=gis"
 
@@ -33,6 +30,7 @@ LOCALES = ['be', 'ru', 'en', 'none']
 
 OK = 200
 ERROR = 500
+
 
 def handler():
     """
@@ -43,32 +41,36 @@ def handler():
     web.header('Content-type', ctype)
     return content
 
+
 urls = (
-      '/(.*)', 'mainhandler'
+    '/(.*)', 'mainhandler'
 )
+
+
 class mainhandler:
-   def GET(self, crap):
-       return handler()
-   def POST(self, crap):
-       return handler()
+    def GET(self, crap):
+        return handler()
+
+    def POST(self, crap):
+        return handler()
 
 
+def get_available_layers((lon, lat)):
+    layers = ["osm"]
+    return layers
 
-def get_available_layers((lon,lat)):
-  layers = ["osm"]
-  return layers
 
-def geocoder_describe((lon,lat), zoom, locale):
-  descr = ()
-  #try:
-  if locale == "en":
-    namestring = """COALESCE("name:en","int_name", replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(translate("name",'абвгдезиклмнопрстуфьАБВГДЕЗИКЛМНОПРСТУФЬ','abvgdeziklmnoprstuf’ABVGDEZIKLMNOPRSTUF’'),'х','kh'),'Х','Kh'),'ц','ts'),'Ц','Ts'),'ч','ch'),'Ч','Ch'),'ш','sh'),'Ш','Sh'),'щ','shch'),'Щ','Shch'),'ъ','”'),'Ъ','”'),'ё','yo'),'Ё','Yo'),'ы','y'),'Ы','Y'),'э','·e'),'Э','E'),'ю','yu'),'Ю','Yu'),'й','y'),'Й','Y'),'я','ya'),'Я','Ya'),'ж','zh'),'Ж','Zh')) AS name"""
-  else:
-    namestring = 'COALESCE("name:'+locale+'", "name") AS name'
-  if True:
-    database_connection = psycopg2.connect(pg_database)
-    database_cursor = database_connection.cursor()
-    req = """
+def geocoder_describe((lon, lat), zoom, locale):
+    descr = ()
+    # try:
+    if locale == "en":
+        namestring = """COALESCE("name:en","int_name", replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(translate("name",'абвгдезиклмнопрстуфьАБВГДЕЗИКЛМНОПРСТУФЬ','abvgdeziklmnoprstuf’ABVGDEZIKLMNOPRSTUF’'),'х','kh'),'Х','Kh'),'ц','ts'),'Ц','Ts'),'ч','ch'),'Ч','Ch'),'ш','sh'),'Ш','Sh'),'щ','shch'),'Щ','Shch'),'ъ','”'),'Ъ','”'),'ё','yo'),'Ё','Yo'),'ы','y'),'Ы','Y'),'э','·e'),'Э','E'),'ю','yu'),'Ю','Yu'),'й','y'),'Й','Y'),'я','ya'),'Я','Ya'),'ж','zh'),'Ж','Zh')) AS name"""
+    else:
+        namestring = 'COALESCE("name:' + locale + '", "name") AS name'
+    if True:
+        database_connection = psycopg2.connect(pg_database)
+        database_cursor = database_connection.cursor()
+        req = """
     select
         admin_level,
         %s,
@@ -80,12 +82,12 @@ def geocoder_describe((lon,lat), zoom, locale):
          and admin_level in ('1','2','3','4','5','6','7','8'))
          and ("name:ru" is not NULL or name is not NULL)
          and boundary = 'administrative'
-    order by admin_level;"""%(namestring, lon, lat)
-    database_cursor.execute(req)
-    descr = database_cursor.fetchall()
-    descr = [(i[0],i[1],json.loads(i[2])) for i in descr]
-    if zoom > 10:
-      req = """
+    order by admin_level;""" % (namestring, lon, lat)
+        database_cursor.execute(req)
+        descr = database_cursor.fetchall()
+        descr = [(i[0], i[1], json.loads(i[2])) for i in descr]
+        if zoom > 10:
+            req = """
     select
         "place" as admin_level,
         %s,
@@ -95,14 +97,12 @@ def geocoder_describe((lon,lat), zoom, locale):
          ST_Intersects(way, ST_Buffer(ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913),10))
          and place in ('city', 'town', 'village', 'hamlet')
          and ("name:ru" is not NULL or name is not NULL)
-    ;"""%(namestring, lon, lat)
-      database_cursor.execute(req)
-      descr.extend([(i[0],i[1],json.loads(i[2])) for i in database_cursor.fetchall()])
+    ;""" % (namestring, lon, lat)
+            database_cursor.execute(req)
+            descr.extend([(i[0], i[1], json.loads(i[2])) for i in database_cursor.fetchall()])
 
-
-
-    if zoom > 12:
-      req = """
+        if zoom > 12:
+            req = """
     select
         'park' as admin_level,
         %s,
@@ -112,13 +112,13 @@ def geocoder_describe((lon,lat), zoom, locale):
          ST_Intersects(way, ST_Buffer(ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913),10))
          and leisure in ('park', 'square', 'garden')
          and ("name:ru" is not NULL or name is not NULL)
-    limit 1;"""%(namestring, lon, lat)
-      database_cursor.execute(req)
-      descr.extend([(i[0],i[1],json.loads(i[2])) for i in database_cursor.fetchall()])      
+    limit 1;""" % (namestring, lon, lat)
+            database_cursor.execute(req)
+            descr.extend([(i[0], i[1], json.loads(i[2])) for i in database_cursor.fetchall()])
 
-    buildings = False
-    if zoom > 13:
-      req = """
+        buildings = False
+        if zoom > 13:
+            req = """
     select
         'building' as admin_level,
         coalesce(
@@ -136,13 +136,13 @@ def geocoder_describe((lon,lat), zoom, locale):
          -- and "addr:street" is not NULL
          and "addr:housenumber" is not NULL
     order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913))
-    limit 1;"""%(namestring, lon, lat, lon, lat)
-      database_cursor.execute(req)
-      buildings = database_cursor.fetchall()
-      descr.extend([(i[0],i[1],json.loads(i[2]),i[3]) for i in buildings])
+    limit 1;""" % (namestring, lon, lat, lon, lat)
+            database_cursor.execute(req)
+            buildings = database_cursor.fetchall()
+            descr.extend([(i[0], i[1], json.loads(i[2]), i[3]) for i in buildings])
 
-    if (not buildings) and zoom > 13:
-      req = """
+        if (not buildings) and zoom > 13:
+            req = """
     select
         "highway" as admin_level,
         COALESCE( (select %s) || ' (' || ref || ')', (select %s), ref),
@@ -157,214 +157,216 @@ def geocoder_describe((lon,lat), zoom, locale):
           )
          and highway is not NULL
          and ("name:ru" is not NULL or name is not NULL or ref is not NULL)
-    limit 1;"""%(namestring, namestring, lon, lat)
-      database_cursor.execute(req)
-      descr.extend([(i[0],i[1],json.loads(i[2])) for i in database_cursor.fetchall()])      
+    limit 1;""" % (namestring, namestring, lon, lat)
+            database_cursor.execute(req)
+            descr.extend([(i[0], i[1], json.loads(i[2])) for i in database_cursor.fetchall()])
 
-  
-  dd = []
-  names = set()
-  for i in descr:
-    if i[1] not in names:
-      dd.append(i)
-      names.add(i[1])
-  #except:
-  #  pass
-  return dd
-  
+    dd = []
+    names = set()
+    for i in descr:
+        if i[1] not in names:
+            dd.append(i)
+            names.add(i[1])
+    # except:
+    #  pass
+    return dd
+
+
 def postgis_query_geojson(query, geomcolumn="way"):
-  #try:
+    # try:
     database_connection = psycopg2.connect(pg_database)
     database_cursor = database_connection.cursor()
     try:
-      database_cursor.execute(query)
+        database_cursor.execute(query)
     except:
-      print >> sys.stderr, "QUERY FAILURE: ", query
-      sys.stderr.flush()
+        print >> sys.stderr, "QUERY FAILURE: ", query
+        sys.stderr.flush()
     names = [q[0] for q in database_cursor.description]
     polygons = []
     for row in database_cursor.fetchall():
-      geom = dict(map(None,names,row))
-      for t in geom.keys():
-        if not geom[t]:
-          del geom[t]
-      geojson = json.loads(geom[geomcolumn])
-      del geom[geomcolumn]
-      if geojson["type"] == "GeometryCollection":
-        continue
-      prop = {}
-      for k,v in geom.iteritems():
-        prop[k] = v
-        try:
-          if int(v) == float(v):
-            prop[k] = int(v)
-          else:
-            prop[k] = float(v)
-          if str(prop[k]) != v:  # leading zeros etc.. should be saved
+        geom = dict(map(None, names, row))
+        for t in geom.keys():
+            if not geom[t]:
+                del geom[t]
+        geojson = json.loads(geom[geomcolumn])
+        del geom[geomcolumn]
+        if geojson["type"] == "GeometryCollection":
+            continue
+        prop = {}
+        for k, v in geom.iteritems():
             prop[k] = v
-        except:
-          pass
-      geojson["properties"] = prop
-      polygons.append(geojson)
+            try:
+                if int(v) == float(v):
+                    prop[k] = int(v)
+                else:
+                    prop[k] = float(v)
+                if str(prop[k]) != v:  # leading zeros etc.. should be saved
+                    prop[k] = v
+            except:
+                pass
+        geojson["properties"] = prop
+        polygons.append(geojson)
     return polygons
-  #except:
-  #  return []
+    # except:
+    #  return []
 
 
-def geocoder_geocode(text,(lon,lat)):
-  descr = ()
-  #try:
-  itags = '"addr:street", "addr:housenumber", "name", "name:ru", "name:be", "place", "shop", "amenity", "ref", "admin_level", "osm_id", "building"'
-  countlimit = 20
-  otext = text
-  if True:
-    text = text.replace("\\", "\\\\").strip()
-    text = text.replace("'", "\\'")
-    if "котярин дом" in text.lower():
-      text = "партизанский 107"
+def geocoder_geocode(text, (lon, lat)):
+    descr = ()
+    # try:
+    itags = '"addr:street", "addr:housenumber", "name", "name:ru", "name:be", "place", "shop", "amenity", "ref", "admin_level", "osm_id", "building"'
+    countlimit = 20
+    otext = text
+    if True:
+        text = text.replace("\\", "\\\\").strip()
+        text = text.replace("'", "\\'")
+        if "котярин дом" in text.lower():
+            text = "партизанский 107"
 
+        if True:  ## here was check for " " in text, but it didn't allow streets to be found
+            # text is complicated - needs split
+            text = text.replace(".", ". ")
+            text = text.replace(",", ", ")
+            text = text.replace("ё", "е")
+            text = text.lower().split()
+            rustreets = dict([(' ' + unicode(line).lower().split('#')[0].strip().replace('ё', 'е') + ' ',
+                               unicode(line).split('#')[0].strip()) for line in open("ru.txt", "r")])
+            cities = dict(
+                [(' ' + unicode(line).lower().strip().replace('ё', 'е') + ' ', unicode(line).strip()) for line in
+                 open("cities.txt", "r")])
+            candidates = {}
+            citycandidates = {}
+            hnos = []
+            streetstatuses = set()
+            status_full = {
+                "проспект": "проспект",
+                "просп": "проспект",
+                "пр-т": "проспект",
 
-    if True: ## here was check for " " in text, but it didn't allow streets to be found
-      # text is complicated - needs split
-      text = text.replace(".", ". ")
-      text = text.replace(",", ", ")
-      text = text.replace("ё", "е")
-      text = text.lower().split()
-      rustreets = dict([(' ' + unicode(line).lower().split('#')[0].strip().replace('ё','е') + ' ', unicode(line).split('#')[0].strip()) for line in open("ru.txt","r")])
-      cities = dict([(' ' + unicode(line).lower().strip().replace('ё','е') + ' ', unicode(line).strip()) for line in open("cities.txt","r")])
-      candidates = {}
-      citycandidates = {}
-      hnos = []
-      streetstatuses = set()
-      status_full = {
-        "проспект": "проспект",
-        "просп": "проспект",
-        "пр-т": "проспект",
+                "улица": "улица",
+                "ул": "улица",
 
-        "улица": "улица",
-        "ул": "улица",
+                "тр-т": "тракт",
+                "тракт": "тракт",
 
-        "тр-т": "тракт",
-        "тракт": "тракт",
+                "пер": "переулок",
+                "переулок": "переулок",
+                "п-к": "переулок",
 
-        "пер": "переулок",
-        "переулок": "переулок",
-        "п-к": "переулок",
-        
-        "пр": "проезд",
-        "пр-д": "проезд",
-        "проезд": "проезд",
-        
-        "ш": "шоссе",
-        "шос": "шоссе",
-        "шоссе": "шоссе",
-        }
-      for k,v in status_full.items():
-        del status_full[k]
-        status_full[unicode(k)] = unicode(v)
-      for word in text:
-        word = word.strip(",").strip(".").lower()
-        if not word:
-          continue
-        if word[0].isdigit() or ((word not in status_full) and (len(word)<=2)):
-          hnos.append(word)
-          continue
-        elif word in status_full:
-          streetstatuses.add(status_full[word])
-          continue
-        if (word not in status_full) and (len(word)>2):
-          found = False
-          ## Checking cities
-          for k,v in cities.iteritems():
-            if (' ' + word + ' ') in k:
-              citycandidates[k] = v
-              #found = True
-              # no inexact substring checks - please write names fully
+                "пр": "проезд",
+                "пр-д": "проезд",
+                "проезд": "проезд",
 
-          ## Checking streets
-          for k,v in rustreets.iteritems():
-            if (' ' + word + ' ') in k:
-              candidates[k] = v
-              found = True
-          if not found:
-            for k,v in rustreets.iteritems():
-              if (' ' + word) in k:
-                candidates[k] = v
-                found = True
-          if not found:
-            for k,v in rustreets.iteritems():
-              if word in k:
-                candidates[k] = v
-      if not candidates and not citycandidates:
-        return []
+                "ш": "шоссе",
+                "шос": "шоссе",
+                "шоссе": "шоссе",
+            }
+            for k, v in status_full.items():
+                del status_full[k]
+                status_full[unicode(k)] = unicode(v)
+            for word in text:
+                word = word.strip(",").strip(".").lower()
+                if not word:
+                    continue
+                if word[0].isdigit() or ((word not in status_full) and (len(word) <= 2)):
+                    hnos.append(word)
+                    continue
+                elif word in status_full:
+                    streetstatuses.add(status_full[word])
+                    continue
+                if (word not in status_full) and (len(word) > 2):
+                    found = False
+                    ## Checking cities
+                    for k, v in cities.iteritems():
+                        if (' ' + word + ' ') in k:
+                            citycandidates[k] = v
+                            # found = True
+                            # no inexact substring checks - please write names fully
 
-      wherecities = ""
-      sqlcities = ""
-      if citycandidates:
-        sqlcities = "("+ ", ".join(["E'"+v.replace("\\", "\\\\").replace("'", "\\'")+"'" for k,v in citycandidates.iteritems()]) + ")"
-        wherecities = "and way && (select ST_Collect(ST_Buffer(way,0.00001)) from planet_osm_polygon where (place in ('city', 'town', 'village', 'hamlet', 'locality') or admin_level in ('4','8','9','10')) and (name in "+sqlcities+")) and ST_Intersects(ST_Buffer(way,0.00001),(select ST_Buffer(ST_Collect(way),0) from planet_osm_polygon where (place in ('city', 'town', 'village', 'hamlet', 'locality') or admin_level in ('4','8','9','10')) and (name in "+sqlcities+"))) "
-      #if not streetstatuses:
-       #streetstatuses = ["проспект", "улица", "площадь"]
-      if streetstatuses:
-        for status in streetstatuses:
-          if status in "|".join(candidates.keys()):
-            for can in candidates.keys():
-              if status not in can:
-                del candidates[can]
-      if len(candidates) > 20:
-        for hno in list(hnos):
-          if hno in "|".join(candidates.keys()):
-            for can in candidates.keys():
-              if hno not in can:
-                del candidates[can]
-            hnos.remove(hno)
-      can = set()
-      for k,candidate in candidates.iteritems():
-        can.add(candidate)
-        can.add(candidate.lower())
-        can.add(candidate.replace("проспект", "просп."))
-        can.add(candidate.replace("улица", "ул."))
-        can.add(candidate.replace("переулок", "пер."))
+                    ## Checking streets
+                    for k, v in rustreets.iteritems():
+                        if (' ' + word + ' ') in k:
+                            candidates[k] = v
+                            found = True
+                    if not found:
+                        for k, v in rustreets.iteritems():
+                            if (' ' + word) in k:
+                                candidates[k] = v
+                                found = True
+                    if not found:
+                        for k, v in rustreets.iteritems():
+                            if word in k:
+                                candidates[k] = v
+            if not candidates and not citycandidates:
+                return []
 
+            wherecities = ""
+            sqlcities = ""
+            if citycandidates:
+                sqlcities = "(" + ", ".join(["E'" + v.replace("\\", "\\\\").replace("'", "\\'") + "'" for k, v in
+                                             citycandidates.iteritems()]) + ")"
+                wherecities = "and way && (select ST_Collect(ST_Buffer(way,0.00001)) from planet_osm_polygon where (place in ('city', 'town', 'village', 'hamlet', 'locality') or admin_level in ('4','8','9','10')) and (name in " + sqlcities + ")) and ST_Intersects(ST_Buffer(way,0.00001),(select ST_Buffer(ST_Collect(way),0) from planet_osm_polygon where (place in ('city', 'town', 'village', 'hamlet', 'locality') or admin_level in ('4','8','9','10')) and (name in " + sqlcities + "))) "
+                # if not streetstatuses:
+                # streetstatuses = ["проспект", "улица", "площадь"]
+            if streetstatuses:
+                for status in streetstatuses:
+                    if status in "|".join(candidates.keys()):
+                        for can in candidates.keys():
+                            if status not in can:
+                                del candidates[can]
+            if len(candidates) > 20:
+                for hno in list(hnos):
+                    if hno in "|".join(candidates.keys()):
+                        for can in candidates.keys():
+                            if hno not in can:
+                                del candidates[can]
+                        hnos.remove(hno)
+            can = set()
+            for k, candidate in candidates.iteritems():
+                can.add(candidate)
+                can.add(candidate.lower())
+                can.add(candidate.replace("проспект", "просп."))
+                can.add(candidate.replace("улица", "ул."))
+                can.add(candidate.replace("переулок", "пер."))
 
+            escaped_can = "(" + ", ".join(["E'" + a.replace("\\", "\\\\").replace("'", "\\'") + "'" for a in can]) + ")"
+            wherestreets = '"addr:street" is NULL and'
+            if can:
+                wherestreets = '"addr:street" in %s and' % escaped_can
 
-      escaped_can = "(" + ", ".join(["E'"+a.replace("\\", "\\\\").replace("'", "\\'")+"'" for a in can]) + ")"
-      wherestreets = '"addr:street" is NULL and'
-      if can:
-        wherestreets = '"addr:street" in %s and' % escaped_can
+            hcan = set()
+            for candidate in hnos:
+                hcan.add(candidate)
+                hcan.add(candidate.lower())
+                hcan.add(candidate.upper())
+                hcan.add(candidate.replace("к", "к "))
+                hcan.add(candidate.replace("к", " к"))
+                hcan.add(candidate.replace("К", " к"))
 
-      
-      hcan = set()
-      for candidate in hnos:
-        hcan.add(candidate)
-        hcan.add(candidate.lower())
-        hcan.add(candidate.upper())
-        hcan.add(candidate.replace("к", "к "))
-        hcan.add(candidate.replace("к", " к"))
-        hcan.add(candidate.replace("К", " к"))
-        
-        hno_rxp = re.compile(u'([0-9]*)\s*([а-йл-яА-ЙЛ-Я]*)\s*,?\s*(к\.|к|корп\.|корпус)?\s*([0-9]*)\s*([а-яА-Я]*)[.]?$')
-        en = u"eyopakxc"
-        ru = u"еуоракхс"
-        for i in range(0,len(en)-1):
-          candidate = candidate.replace(en[i],ru[i])
-          hcan.add(candidate)
-        p = hno_rxp.match(candidate.upper())
-        if p:
-          hno = p.groups()
-          hno = [hno[0], hno[1], hno[3], hno[4]]
+                hno_rxp = re.compile(
+                    u'([0-9]*)\s*([а-йл-яА-ЙЛ-Я]*)\s*,?\s*(к\.|к|корп\.|корпус)?\s*([0-9]*)\s*([а-яА-Я]*)[.]?$')
+                en = u"eyopakxc"
+                ru = u"еуоракхс"
+                for i in range(0, len(en) - 1):
+                    candidate = candidate.replace(en[i], ru[i])
+                    hcan.add(candidate)
+                p = hno_rxp.match(candidate.upper())
+                if p:
+                    hno = p.groups()
+                    hno = [hno[0], hno[1], hno[3], hno[4]]
 
-          zhno = ""
-          zhno += str(hno[0]) + str(hno[1])
-          if hno[2] or hno[3]:
-            zhno += " к" + str(hno[2]) + str(hno[3])
-          hcan.add(zhno)
-      hnos = list(hcan)
-      escaped_hnos = "(" + ", ".join(["E'"+a.replace("\\", "\\\\").replace("'", "\\'")+"'" for a in hnos]) + ")"
-      
-      if hnos:
-        # trying to find buildings. first - exact hno match
-        req = """
+                    zhno = ""
+                    zhno += str(hno[0]) + str(hno[1])
+                    if hno[2] or hno[3]:
+                        zhno += " к" + str(hno[2]) + str(hno[3])
+                    hcan.add(zhno)
+            hnos = list(hcan)
+            escaped_hnos = "(" + ", ".join(
+                ["E'" + a.replace("\\", "\\\\").replace("'", "\\'") + "'" for a in hnos]) + ")"
+
+            if hnos:
+                # trying to find buildings. first - exact hno match
+                req = """
 select
     %s,
     ST_AsGeoJSON(ST_Expand(ST_Transform(way,4326),0)) as way,
@@ -388,13 +390,17 @@ where
     ("addr:housenumber" in %s)
     %s
     )
-order by distance limit %s;"""%(itags, lon, lat, wherestreets, escaped_hnos, wherecities, itags, lon, lat, wherestreets, escaped_hnos, wherecities, countlimit)
-        descr = postgis_query_geojson(req)
-        if descr:
-          return descr
-        # then, try buildings that start with that number
-        like_hnos = "(" + " or ".join(["\"addr:housenumber\" ILIKE E'"+a.replace("\\", "\\\\").replace("'", "\\'")+"%'" for a in hnos]) + ")"
-        req = """
+order by distance limit %s;""" % (
+                itags, lon, lat, wherestreets, escaped_hnos, wherecities, itags, lon, lat, wherestreets, escaped_hnos,
+                wherecities, countlimit)
+                descr = postgis_query_geojson(req)
+                if descr:
+                    return descr
+                # then, try buildings that start with that number
+                like_hnos = "(" + " or ".join(
+                    ["\"addr:housenumber\" ILIKE E'" + a.replace("\\", "\\\\").replace("'", "\\'") + "%'" for a in
+                     hnos]) + ")"
+                req = """
     select
     %s,
     ST_AsGeoJSON(ST_Expand(ST_Transform(way,4326),0)) as way
@@ -405,14 +411,15 @@ order by distance limit %s;"""%(itags, lon, lat, wherestreets, escaped_hnos, whe
      %s
      %s
     )
-    order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;"""%(itags, escaped_can, like_hnos, wherecities, lon, lat, countlimit)
-        descr = postgis_query_geojson(req)
-        if descr:
-          return descr
-      if hnos and citycandidates:
-        # failed searching for buildings in city, so retry without city.
-        # trying to find buildings. first - exact hno match
-        req = """
+    order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;""" % (
+                itags, escaped_can, like_hnos, wherecities, lon, lat, countlimit)
+                descr = postgis_query_geojson(req)
+                if descr:
+                    return descr
+            if hnos and citycandidates:
+                # failed searching for buildings in city, so retry without city.
+                # trying to find buildings. first - exact hno match
+                req = """
 select
     %s,
     ST_AsGeoJSON(ST_Expand(ST_Transform(way,4326),0)) as way,
@@ -436,13 +443,17 @@ where
     ("addr:housenumber" in %s)
     %s
     )
-order by distance limit %s;"""%(itags, lon, lat, escaped_can, escaped_hnos, '', itags, lon, lat, escaped_can, escaped_hnos, "", countlimit)
-        descr = postgis_query_geojson(req)
-        if descr:
-          return descr
-        # then, try buildings that start with that number
-        like_hnos = "(" + " or ".join(["\"addr:housenumber\" ILIKE E'"+a.replace("\\", "\\\\").replace("'", "\\'")+"%'" for a in hnos]) + ")"
-        req = """
+order by distance limit %s;""" % (
+                itags, lon, lat, escaped_can, escaped_hnos, '', itags, lon, lat, escaped_can, escaped_hnos, "",
+                countlimit)
+                descr = postgis_query_geojson(req)
+                if descr:
+                    return descr
+                # then, try buildings that start with that number
+                like_hnos = "(" + " or ".join(
+                    ["\"addr:housenumber\" ILIKE E'" + a.replace("\\", "\\\\").replace("'", "\\'") + "%'" for a in
+                     hnos]) + ")"
+                req = """
     select
     %s,
     ST_AsGeoJSON(ST_Expand(ST_Transform(way,4326),0)) as way
@@ -453,13 +464,14 @@ order by distance limit %s;"""%(itags, lon, lat, escaped_can, escaped_hnos, '', 
      %s
      %s
     )
-    order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;"""%(itags, escaped_can, like_hnos, "", lon, lat, countlimit)
-        descr = postgis_query_geojson(req)
-        if descr:
-          return descr
+    order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;""" % (
+                itags, escaped_can, like_hnos, "", lon, lat, countlimit)
+                descr = postgis_query_geojson(req)
+                if descr:
+                    return descr
 
-      if candidates:
-        req = """
+            if candidates:
+                req = """
   select
   %s,
   ST_AsGeoJSON(ST_Expand(ST_Transform(way,4326),0),6) as way
@@ -467,12 +479,13 @@ order by distance limit %s;"""%(itags, lon, lat, escaped_can, escaped_hnos, '', 
   where
   ("name" in %s or "name:en" in %s )
   %s
-  order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;"""%(itags, escaped_can, escaped_can, wherecities, lon, lat, countlimit)
-        descr = postgis_query_geojson(req)
-        if descr:
-          return descr
-      if citycandidates:
-        req = """
+  order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;""" % (
+                itags, escaped_can, escaped_can, wherecities, lon, lat, countlimit)
+                descr = postgis_query_geojson(req)
+                if descr:
+                    return descr
+            if citycandidates:
+                req = """
   select
   %s,
   ST_AsGeoJSON(ST_Expand(ST_Transform(way,4326),0),6) as way
@@ -480,13 +493,14 @@ order by distance limit %s;"""%(itags, lon, lat, escaped_can, escaped_hnos, '', 
   where
   ("name" in %s)
   and (place in ('city', 'town', 'village', 'hamlet', 'locality') or admin_level in ('4','8','9','10'))
-  order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;"""%(itags, sqlcities, lon, lat, countlimit)
-        descr = postgis_query_geojson(req)
-        if descr:
-          return descr
+  order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;""" % (
+                itags, sqlcities, lon, lat, countlimit)
+                descr = postgis_query_geojson(req)
+                if descr:
+                    return descr
 
-    ### Exact match - last resort
-    req = """
+        ### Exact match - last resort
+        req = """
     select
         %s,
         ST_AsGeoJSON(ST_Expand(ST_Transform(way,4326),0)) as way
@@ -497,22 +511,22 @@ order by distance limit %s;"""%(itags, lon, lat, escaped_can, escaped_hnos, '', 
        name = E'%s' or 
        "name:en" = E'%s'
        )
-    order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;"""%(itags, otext, otext, otext, lon, lat, countlimit)
-    descr = postgis_query_geojson(req)
-    if descr:
-      return descr
-          
-  return descr
+    order by ST_Distance(way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;""" % (
+        itags, otext, otext, otext, lon, lat, countlimit)
+        descr = postgis_query_geojson(req)
+        if descr:
+            return descr
+
+    return descr
 
 
-
-def organisations_around_point((lon,lat), locale):
-  if locale == "en":
-    namestring = """COALESCE(p."name:en",p."int_name", replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(translate(p."name",'абвгдезиклмнопрстуфьАБВГДЕЗИКЛМНОПРСТУФЬ','abvgdeziklmnoprstuf’ABVGDEZIKLMNOPRSTUF’'),'х','kh'),'Х','Kh'),'ц','ts'),'Ц','Ts'),'ч','ch'),'Ч','Ch'),'ш','sh'),'Ш','Sh'),'щ','shch'),'Щ','Shch'),'ъ','”'),'Ъ','”'),'ё','yo'),'Ё','Yo'),'ы','y'),'Ы','Y'),'э','·e'),'Э','E'),'ю','yu'),'Ю','Yu'),'й','y'),'Й','Y'),'я','ya'),'Я','Ya'),'ж','zh'),'Ж','Zh')) AS name"""
-  else:
-    namestring = 'COALESCE(p."name:'+locale+'", p."name") AS name'
-  countlimit = 100
-  req = """
+def organisations_around_point((lon, lat), locale):
+    if locale == "en":
+        namestring = """COALESCE(p."name:en",p."int_name", replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(translate(p."name",'абвгдезиклмнопрстуфьАБВГДЕЗИКЛМНОПРСТУФЬ','abvgdeziklmnoprstuf’ABVGDEZIKLMNOPRSTUF’'),'х','kh'),'Х','Kh'),'ц','ts'),'Ц','Ts'),'ч','ch'),'Ч','Ch'),'ш','sh'),'Ш','Sh'),'щ','shch'),'Щ','Shch'),'ъ','”'),'Ъ','”'),'ё','yo'),'Ё','Yo'),'ы','y'),'Ы','Y'),'э','·e'),'Э','E'),'ю','yu'),'Ю','Yu'),'й','y'),'Й','Y'),'я','ya'),'Я','Ya'),'ж','zh'),'Ж','Zh')) AS name"""
+    else:
+        namestring = 'COALESCE(p."name:' + locale + '", p."name") AS name'
+    countlimit = 100
+    req = """
   select distinct
       %s,
       p."opening_hours",
@@ -539,176 +553,149 @@ def organisations_around_point((lon,lat), locale):
       and ST_DWithin(b.way, p.way, 10)
       and (p.amenity is not NULL or p.shop is not NULL or p.office is not NULL or (p.tags->'craft') is not NULL)
       )
-  order by ST_Distance(p.way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;"""%(namestring, lon, lat,lon, lat, lon, lat, countlimit)
+  order by ST_Distance(p.way, ST_Transform(ST_GeomFromText('POINT(%f %s)',4326),900913)) limit %s;""" % (
+    namestring, lon, lat, lon, lat, lon, lat, countlimit)
 
-  descr = postgis_query_geojson(req)
-  if descr:
-    return descr
-  
+    descr = postgis_query_geojson(req)
+    if descr:
+        return descr
+
 
 def i18n(aaaa):
-  return web.input().get("lang")
+    return web.input().get("lang")
 
 
 def face_main(data):
-  content_type = "text/html"
-  render = render_cheetah('templates/')
-  a = ""
-  locale = data.get("locale","be")
-  userip = os.environ.get("REMOTE_ADDR", "0.0.0.0")
-  
-  if locale not in ('en','ru','be'):
-    locale = "be"
-  if data.get('request') == 'describe':
-    content_type = "text/javascript"
-    lat = float(data["lat"])
-    lon = float(data["lon"])
+    content_type = "text/html"
+    render = render_cheetah('templates/')
+    a = ""
+    locale = data.get("locale", "be")
+    userip = os.environ.get("REMOTE_ADDR", "0.0.0.0")
 
-    zoom = float(data.get("zoom", 10))
-    userid = data.get("id", "none")
-    r = redis.Redis(host='localhost', port=6379, db=0)
-    r.rpush("osmbyusers:"+userip+":"+userid, json.dumps([lat,lon,zoom, locale, time.time()]))
-    r.expire("osmbyusers:"+userip+":"+userid, 3600)
-    a = {}
-    a["breadcrumbs"] = geocoder_describe((lon,lat), zoom, locale)
-    a = json.dumps(a, ensure_ascii=False)
-  elif data.get('request') == 'getusersnow':
-    content_type = "text/javascript"
-    r = redis.Redis(host='localhost', port=6379, db=0)
-    a = r.keys("osmbyusers*")
-    b = []
-    for i in a:
-      b.append([json.loads(j) for j in r.lrange(i,0,1000)])
-    a = b
-    a = json.dumps(a)
-  elif data.get('request') == 'geocode':
-    content_type = "text/javascript"
-    lat = float(data.get("lat", 53.9))
-    lon = float(data.get("lon", 27.5))
-    text = data.get("text",'Minsk')
-    a = {}
-    a["results"] = geocoder_geocode(text,(lon,lat))
+    if locale not in ('en', 'ru', 'be'):
+        locale = "be"
+    if data.get('request') == 'describe':
+        content_type = "text/javascript"
+        lat = float(data["lat"])
+        lon = float(data["lon"])
 
-    try:
-      logfile = open('req.txt', "a")
-      print >> logfile, len(a["results"]), lon, lat, text
-      logfile.close()
-      if len(a["results"]) == 0:
-        logfile = open('notfound.txt', "a")
-        print >> logfile, len(a["results"]), lon, lat, text
-        logfile.close()
-    except:
-      pass
-    a = json.dumps(a, ensure_ascii=False)
+        zoom = float(data.get("zoom", 10))
+        userid = data.get("id", "none")
+        r = redis.Redis(host='localhost', port=6379, db=0)
+        r.rpush("osmbyusers:" + userip + ":" + userid, json.dumps([lat, lon, zoom, locale, time.time()]))
+        r.expire("osmbyusers:" + userip + ":" + userid, 3600)
+        a = {}
+        a["breadcrumbs"] = geocoder_describe((lon, lat), zoom, locale)
+        a = json.dumps(a, ensure_ascii=False)
 
+    elif data.get('request') == 'getusersnow':
+        content_type = "text/javascript"
+        r = redis.Redis(host='localhost', port=6379, db=0)
+        a = r.keys("osmbyusers*")
+        b = []
+        for i in a:
+            b.append([json.loads(j) for j in r.lrange(i, 0, 1000)])
+        a = b
+        a = json.dumps(a)
 
-  elif data.get('request') == 'click_about':
-    content_type = "text/javascript"
-    lat = float(data.get("lat", 53.9))
-    lon = float(data.get("lon", 27.5))
-    locale = data.get("locale","be")
-    if locale not in ('en','ru','be'):
-      locale = "be"
-    a = {}
-    a["results"] = organisations_around_point((lon,lat), locale)
-    a["coords"] = (lon, lat)
-    a = json.dumps(a, ensure_ascii=False)
-  elif data.get('request') == 'leech':
-    page = data.get('page', 'navitel')
-    url = ''
-    rxp = "(<table.*?/table>)"
-    if page == "navitel":
-      url = "http://code.google.com/p/maps-by/wiki/Navitel"
-    elif page == "garmin":
-      url = "http://code.google.com/p/maps-by/wiki/garmin"
-    a = urllib.urlopen(url).read()
-    a = re.search("(<table.*?/table>)",a).group()
-    a += "<br /><s>Project page:</s> <a href='%s'>%s</a>"%(url, url)
+    elif data.get('request') == 'geocode':
+        content_type = "text/javascript"
+        lat = float(data.get("lat", 53.9))
+        lon = float(data.get("lon", 27.5))
+        text = data.get("text", 'Minsk')
+        a = {}
+        a["results"] = geocoder_geocode(text, (lon, lat))
+
+        try:
+            logfile = open('req.txt', "a")
+            print >> logfile, len(a["results"]), lon, lat, text
+            logfile.close()
+            if len(a["results"]) == 0:
+                logfile = open('notfound.txt', "a")
+                print >> logfile, len(a["results"]), lon, lat, text
+                logfile.close()
+        except:
+            pass
+        a = json.dumps(a, ensure_ascii=False)
 
 
-  elif data.get('request') == 'bugs-table':
-    bbox = data.get("bbox", "27.303566420912,53.757177366664,27.873482192375,54.037560030818")
-    bbox = tuple([float(a) for a in bbox.split(",")])
-    url = "http://openstreetbugs.schokokeks.org/api/0.1/getGPX?l=%s&b=%s&r=%s&t=%s&limit=1000&open=1"%bbox
-    GPX = urllib2.urlopen(url)
-    lon=0
-    lat=0
-    text=""
-    bugs = []
-    #b = ""
-    for event, element in etree.iterparse(GPX):
+    elif data.get('request') == 'click_about':
+        content_type = "text/javascript"
+        lat = float(data.get("lat", 53.9))
+        lon = float(data.get("lon", 27.5))
+        a = {}
+        a["results"] = organisations_around_point((lon, lat), locale)
+        a["coords"] = (lon, lat)
+        a = json.dumps(a, ensure_ascii=False)
+    elif data.get('request') == 'leech':
+        page = data.get('page', 'navitel')
+        url = ''
+        rxp = "(<table.*?/table>)"
+        if page == "navitel":
+            url = "http://code.google.com/p/maps-by/wiki/Navitel"
+        elif page == "garmin":
+            url = "http://code.google.com/p/maps-by/wiki/garmin"
+        a = urllib.urlopen(url).read()
+        a = re.search("(<table.*?/table>)", a).group()
+        a += "<br /><s>Project page:</s> <a href='%s'>%s</a>" % (url, url)
 
-      tag = element.tag.split("}")[-1]
-      params = dict(element.items())
-      #a += "-" + tag
-      if tag == "wpt":
-        q = {}
-        q["lon"] = float(params["lon"])
-        q["lat"] = float(params["lat"])
-        q["text"] = text
-        bugs.append(q)
-        #b += "<tr><td>%s,%s</td><td>%s</td></tr>"%(q["lon"], q["lat"], q["text"])
-      if tag == "desc":
-        text = element.text
-        text = text.replace("<hr","<br")
-      a = render.bugstable(bugs=bugs)
-  elif data.get('request') == 'locale-tracebug':
-    lang = data.get("lang", None)
-    tt = data.get("lines", "|")[:-1] # string%1|string2%3
-    if (lang in LOCALES) and tt:
-      r = redis.Redis(host='localhost', port=6379, db=0)
-      tt = [(i.split('%')[0], float(i.split('%')[1]) ) for i in tt.split('|')]
-      for i in tt:
-        r.zincrby('locale:'+lang, i[0], i[1])
-    a = "ok"
-  else:
-    lat, lon, zoom = (0, 0, 1)
-    layer = "osm"
-    try:                                                                           # first try to get map postiton from URL
-      lat = float(data["lat"])
-      lon = float(data["lon"])
-      zoom = float(data.get("zoom", 10))
-    except KeyError, ValueError:
-      user_geoip = GeoIpCache.record_by_addr(userip)            # try GeoIP
-      try:
-        lat = user_geoip["latitude"]
-        lon = user_geoip["longitude"]
-      except TypeError:
-        lat = 53.90716974946899
-        lon = 27.57946014404297
-      zoom = 8
-    description = "OpenStreetMap Беларусь. Карта, рисуемая людьми."
-    import math
-    def deg2num(lat_deg, lon_deg, zoom):
-      lat_rad = math.radians(lat_deg)
-      n = 2.0 ** zoom
-      xtile = ((lon_deg + 180.0) / 360.0 * n)
-      ytile = ((1.0 - math.log(math.tan(lat_rad) + (1 / math.cos(lat_rad))) / math.pi) / 2.0 * n)
-      return (xtile, ytile)
-    snippeturl = ""
-    if data.get("lat"):
-      offzoom = int(max(zoom-2,0))
-      
-      snippeturl = "http://twms.kosmosnimki.ru/?layers=osm&request=GetTile&z=%s&x=%s&y=%s&format=image/png"%(offzoom, deg2num(lat,lon,offzoom)[0]-.5,deg2num(lat,lon,offzoom)[1]-.5)
-      try:
-        description = [i[1] for i in geocoder_describe((lon,lat), zoom, locale)]
-        description.reverse()
-        description = ", ".join(description) + " на картах OpenStreetMap Беларусь"
-        description.replace('"','')
-      except:
-        pass
-    a = render.index( _=i18n, longitude=lon, latitude=lat, zoom=zoom, description=description, snippeturl = snippeturl)
-    if data.get("beta"):
-      a = render.indexb( _=i18n, longitude=lon, latitude=lat, zoom=zoom, description=description, snippeturl = snippeturl)
-  return OK, content_type, a
+    elif data.get('request') == 'locale-tracebug':
+        lang = data.get("lang", None)
+        tt = data.get("lines", "|")[:-1]  # string%1|string2%3
+        if (lang in LOCALES) and tt:
+            r = redis.Redis(host='localhost', port=6379, db=0)
+            tt = [(i.split('%')[0], float(i.split('%')[1])) for i in tt.split('|')]
+            for i in tt:
+                r.zincrby('locale:' + lang, i[0], i[1])
+        a = "ok"
+    else:
+        lat, lon, zoom = (0, 0, 1)
+        layer = "osm"
+        try:  # first try to get map postiton from URL
+            lat = float(data["lat"])
+            lon = float(data["lon"])
+            zoom = float(data.get("zoom", 10))
+        except (KeyError, ValueError):
+            user_geoip = GeoIpCache.record_by_addr(userip)  # try GeoIP
+            try:
+                lat = user_geoip["latitude"]
+                lon = user_geoip["longitude"]
+            except TypeError:
+                lat = 53.907169
+                lon = 27.579460
+            zoom = 8
+        description = "OpenStreetMap Беларусь. Карта, рисуемая людьми."
+        import math
+        def deg2num(lat_deg, lon_deg, zoom):
+            lat_rad = math.radians(lat_deg)
+            n = 2.0 ** zoom
+            xtile = ((lon_deg + 180.0) / 360.0 * n)
+            ytile = ((1.0 - math.log(math.tan(lat_rad) + (1 / math.cos(lat_rad))) / math.pi) / 2.0 * n)
+            return (xtile, ytile)
+
+        snippeturl = ""
+        if data.get("lat"):
+            offzoom = int(max(zoom - 2, 0))
+
+            snippeturl = "http://twms.kosmosnimki.ru/?layers=osm&request=GetTile&z=%s&x=%s&y=%s&format=image/png" % (
+            offzoom, deg2num(lat, lon, offzoom)[0] - .5, deg2num(lat, lon, offzoom)[1] - .5)
+            try:
+                description = [i[1] for i in geocoder_describe((lon, lat), zoom, locale)]
+                description.reverse()
+                description = ", ".join(description) + " на картах OpenStreetMap Беларусь"
+                description.replace('"', '')
+            except:
+                pass
+        a = render.index(_=i18n, locale = locale, longitude=lon, latitude=lat, zoom=zoom, description=description, snippeturl=snippeturl)
+        if data.get("beta"):
+            a = render.indexb(_=i18n, locale = locale, longitude=lon, latitude=lat, zoom=zoom, description=description,
+                              snippeturl=snippeturl)
+    return OK, content_type, a
 
 
 if __name__ == "__main__":
+    web.wsgi.runwsgi = lambda func, addr=None: web.wsgi.runfcgi(func, addr)
     app = web.application(urls, globals())
-    app.run()                                                    # standalone run
+    app.run()  # standalone run
 
-
-application = web.application(urls, globals()).wsgifunc()        # mod_wsgi
-
-
-
+application = web.application(urls, globals()).wsgifunc()  # mod_wsgi
