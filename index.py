@@ -569,7 +569,7 @@ def i18n(aaaa):
 def face_main(data):
     content_type = "text/html"
     render = render_cheetah('templates/')
-    locale = data.get("locale", data.get("lang", "be"))
+    locale = data.get("lang", "be")
     userip = os.environ.get("REMOTE_ADDR", "0.0.0.0")
 
     if locale not in ('en', 'ru', 'be'):
@@ -623,17 +623,6 @@ def face_main(data):
         lon = float(data.get("lon", 27.5))
         a = {"results": organisations_around_point((lon, lat), locale), "coords": (lon, lat)}
         a = json.dumps(a, ensure_ascii=False)
-    elif data.get('request') == 'leech':
-        page = data.get('page', 'navitel')
-        url = ''
-        rxp = "(<table.*?/table>)"
-        if page == "navitel":
-            url = "http://code.google.com/p/maps-by/wiki/Navitel"
-        elif page == "garmin":
-            url = "http://code.google.com/p/maps-by/wiki/garmin"
-        a = urllib.urlopen(url).read()
-        a = re.search("(<table.*?/table>)", a).group()
-        a += "<br /><s>Project page:</s> <a href='%s'>%s</a>" % (url, url)
 
     elif data.get('request') == 'locale-tracebug':
         lang = data.get("lang", None)
@@ -644,6 +633,7 @@ def face_main(data):
             for i in tt:
                 r.zincrby('locale:' + lang, i[0], i[1])
         a = "ok"
+
     else:
         lat, lon, zoom = (0, 0, 1)
         layer = "osm"
@@ -661,6 +651,7 @@ def face_main(data):
                 lon = 27.579460
             zoom = 8
         description = "OpenStreetMap Беларусь. Карта, рисуемая людьми."
+
         import math
         def deg2num(lat_deg, lon_deg, zoom):
             lat_rad = math.radians(lat_deg)
