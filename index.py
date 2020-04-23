@@ -679,7 +679,10 @@ def face_main(data):
 
 
 if __name__ == "__main__":
+    # standalone run
+    if not sys.argv[1:]:
+        sys.argv.append('127.0.0.1')
     app = web.application(urls, globals())
-    app.run()  # standalone run
+    app.run()
 
 application = web.application(urls, globals()).wsgifunc()  # mod_wsgi
