@@ -680,9 +680,26 @@ def face_main(data):
 
 if __name__ == "__main__":
     # standalone run
+
+    # stop listening on 0.0.0.0
     if not sys.argv[1:]:
         sys.argv.append('127.0.0.1')
     app = web.application(urls, globals())
-    app.run()
+
+    # serve all files as static
+    def root_static(app):
+        class RootMiddleware:
+            def __call__(self, environ, start_response):
+                path = environ.get("PATH_INFO", "")
+                relpath = path[1:]  # strip leading "/" if exists
+                if os.path.isfile(relpath):
+                    return web.httpserver.StaticApp(environ, start_response)
+                else:
+                    return app(environ, start_response)
+
+        return RootMiddleware()
+
+    app.run(root_static)
+
 
 application = web.application(urls, globals()).wsgifunc()  # mod_wsgi
