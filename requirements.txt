@@ -1,1 +1,1 @@
-GeoIP
+geoip2
