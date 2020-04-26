@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-python@master
         with:
           python-version: 2.7  # ${{ matrix.python-version }}
-      - run: apt-get install libgeoip-dev -y
+      - run: sudo apt-get install libgeoip-dev -y
       - run: pip install codespell flake8 isort pytest
       - if: matrix.python-version >= 3.6
         run: |
