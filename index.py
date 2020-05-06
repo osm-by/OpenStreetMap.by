@@ -679,7 +679,15 @@ def face_main(data):
 
 
 if __name__ == "__main__":
-    web.wsgi.runwsgi = lambda func, addr=None: web.wsgi.runfcgi(func, addr)
+    class StaticHandler:
+        def GET(self, file_name):
+            with open(file_name, 'rb') as h:
+                return h.read()
+
+    urls = (
+        '/(favicon.ico|main.css|smallscreen.css|helper.js|bright-v9-cdn.json|js/.*|img/.*)', 'StaticHandler',
+    ) + urls
+
     app = web.application(urls, globals())
     app.run()  # standalone run
 
