@@ -6,18 +6,11 @@ import os
 import web
 import sys
 import psycopg2
-import urllib
-import urllib2
 import re
 import redis
 import time
 
-reload(sys)
-sys.setdefaultencoding("utf-8")  # a hack to support UTF-8
-
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
-from lxml import etree
 
 web.config.debug = False
 
@@ -55,12 +48,14 @@ class mainhandler:
         return handler()
 
 
-def get_available_layers((lon, lat)):
+def get_available_layers(lon_lat):
+    lon, lat = lon_lat
     layers = ["osm"]
     return layers
 
 
-def geocoder_describe((lon, lat), zoom, locale):
+def geocoder_describe(lon_lat, zoom, locale):
+    lon, lat = lon_lat
     descr = ()
     # try:
     if locale == "en":
@@ -179,13 +174,13 @@ def postgis_query_geojson(query, geomcolumn="way"):
     try:
         database_cursor.execute(query)
     except:
-        print >> sys.stderr, "QUERY FAILURE: ", query
+        print("QUERY FAILURE: ", query, file=sys.stderr)
         sys.stderr.flush()
     names = [q[0] for q in database_cursor.description]
     polygons = []
     for row in database_cursor.fetchall():
         geom = dict(map(None, names, row))
-        for t in geom.keys():
+        for t in list(geom.keys()):
             if not geom[t]:
                 del geom[t]
         geojson = json.loads(geom[geomcolumn])
@@ -193,7 +188,7 @@ def postgis_query_geojson(query, geomcolumn="way"):
         if geojson["type"] == "GeometryCollection":
             continue
         prop = {}
-        for k, v in geom.iteritems():
+        for k, v in geom.items():
             prop[k] = v
             try:
                 if int(v) == float(v):
@@ -211,7 +206,8 @@ def postgis_query_geojson(query, geomcolumn="way"):
     #  return []
 
 
-def geocoder_geocode(text, (lon, lat)):
+def geocoder_geocode(text, lon_lat):
+    lon, lat = lon_lat
     descr = ()
     # try:
     itags = '"addr:street", "addr:housenumber", "name", "name:ru", "name:be", "place", "shop", "amenity", "ref", "admin_level", "osm_id", "building"'
@@ -229,10 +225,10 @@ def geocoder_geocode(text, (lon, lat)):
             text = text.replace(",", ", ")
             text = text.replace("ё", "е")
             text = text.lower().split()
-            rustreets = dict([(' ' + unicode(line).lower().split('#')[0].strip().replace('ё', 'е') + ' ',
-                               unicode(line).split('#')[0].strip()) for line in open("ru.txt", "r")])
+            rustreets = dict([(' ' + str(line).lower().split('#')[0].strip().replace('ё', 'е') + ' ',
+                               str(line).split('#')[0].strip()) for line in open("ru.txt", "r")])
             cities = dict(
-                [(' ' + unicode(line).lower().strip().replace('ё', 'е') + ' ', unicode(line).strip()) for line in
+                [(' ' + str(line).lower().strip().replace('ё', 'е') + ' ', str(line).strip()) for line in
                  open("cities.txt", "r")])
             candidates = {}
             citycandidates = {}
@@ -261,9 +257,9 @@ def geocoder_geocode(text, (lon, lat)):
                 "шос": "шоссе",
                 "шоссе": "шоссе",
             }
-            for k, v in status_full.items():
+            for k, v in list(status_full.items()):
                 del status_full[k]
-                status_full[unicode(k)] = unicode(v)
+                status_full[str(k)] = str(v)
             for word in text:
                 word = word.strip(",").strip(".").lower()
                 if not word:
@@ -277,24 +273,24 @@ def geocoder_geocode(text, (lon, lat)):
                 if (word not in status_full) and (len(word) > 2):
                     found = False
                     ## Checking cities
-                    for k, v in cities.iteritems():
+                    for k, v in cities.items():
                         if (' ' + word + ' ') in k:
                             citycandidates[k] = v
                             # found = True
                             # no inexact substring checks - please write names fully
 
                     ## Checking streets
-                    for k, v in rustreets.iteritems():
+                    for k, v in rustreets.items():
                         if (' ' + word + ' ') in k:
                             candidates[k] = v
                             found = True
                     if not found:
-                        for k, v in rustreets.iteritems():
+                        for k, v in rustreets.items():
                             if (' ' + word) in k:
                                 candidates[k] = v
                                 found = True
                     if not found:
-                        for k, v in rustreets.iteritems():
+                        for k, v in rustreets.items():
                             if word in k:
                                 candidates[k] = v
             if not candidates and not citycandidates:
@@ -304,25 +300,25 @@ def geocoder_geocode(text, (lon, lat)):
             sqlcities = ""
             if citycandidates:
                 sqlcities = "(" + ", ".join(["E'" + v.replace("\\", "\\\\").replace("'", "\\'") + "'" for k, v in
-                                             citycandidates.iteritems()]) + ")"
+                                             citycandidates.items()]) + ")"
                 wherecities = "and way && (select ST_Collect(ST_Buffer(way,0.00001)) from planet_osm_polygon where (place in ('city', 'town', 'village', 'hamlet', 'locality') or admin_level in ('4','8','9','10')) and (name in " + sqlcities + ")) and ST_Intersects(ST_Buffer(way,0.00001),(select ST_Buffer(ST_Collect(way),0) from planet_osm_polygon where (place in ('city', 'town', 'village', 'hamlet', 'locality') or admin_level in ('4','8','9','10')) and (name in " + sqlcities + "))) "
                 # if not streetstatuses:
                 # streetstatuses = ["проспект", "улица", "площадь"]
             if streetstatuses:
                 for status in streetstatuses:
-                    if status in "|".join(candidates.keys()):
-                        for can in candidates.keys():
+                    if status in "|".join(list(candidates.keys())):
+                        for can in list(candidates.keys()):
                             if status not in can:
                                 del candidates[can]
             if len(candidates) > 20:
                 for hno in list(hnos):
-                    if hno in "|".join(candidates.keys()):
-                        for can in candidates.keys():
+                    if hno in "|".join(list(candidates.keys())):
+                        for can in list(candidates.keys()):
                             if hno not in can:
                                 del candidates[can]
                         hnos.remove(hno)
             can = set()
-            for k, candidate in candidates.iteritems():
+            for k, candidate in candidates.items():
                 can.add(candidate)
                 can.add(candidate.lower())
                 can.add(candidate.replace("проспект", "просп."))
@@ -344,9 +340,9 @@ def geocoder_geocode(text, (lon, lat)):
                 hcan.add(candidate.replace("К", " к"))
 
                 hno_rxp = re.compile(
-                    u'([0-9]*)\s*([а-йл-яА-ЙЛ-Я]*)\s*,?\s*(к\.|к|корп\.|корпус)?\s*([0-9]*)\s*([а-яА-Я]*)[.]?$')
-                en = u"eyopakxc"
-                ru = u"еуоракхс"
+                    '([0-9]*)\s*([а-йл-яА-ЙЛ-Я]*)\s*,?\s*(к\.|к|корп\.|корпус)?\s*([0-9]*)\s*([а-яА-Я]*)[.]?$')
+                en = "eyopakxc"
+                ru = "еуоракхс"
                 for i in range(0, len(en) - 1):
                     candidate = candidate.replace(en[i], ru[i])
                     hcan.add(candidate)
@@ -521,7 +517,8 @@ order by distance limit %s;""" % (
     return descr
 
 
-def organisations_around_point((lon, lat), locale):
+def organisations_around_point(lon_lat, locale):
+    lon, lat = lon_lat
     if locale == "en":
         namestring = """COALESCE(p."name:en",p."int_name", replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(translate(p."name",'абвгдезиклмнопрстуфьАБВГДЕЗИКЛМНОПРСТУФЬ','abvgdeziklmnoprstuf’ABVGDEZIKLMNOPRSTUF’'),'х','kh'),'Х','Kh'),'ц','ts'),'Ц','Ts'),'ч','ch'),'Ч','Ch'),'ш','sh'),'Ш','Sh'),'щ','shch'),'Щ','Shch'),'ъ','”'),'Ъ','”'),'ё','yo'),'Ё','Yo'),'ы','y'),'Ы','Y'),'э','·e'),'Э','E'),'ю','yu'),'Ю','Yu'),'й','y'),'Й','Y'),'я','ya'),'Я','Ya'),'ж','zh'),'Ж','Zh')) AS name"""
     else:
@@ -606,11 +603,11 @@ def face_main(data):
 
         try:
             logfile = open('req.txt', "a")
-            print >> logfile, len(a["results"]), lon, lat, text
+            print(len(a["results"]), lon, lat, text, file=logfile)
             logfile.close()
             if len(a["results"]) == 0:
                 logfile = open('notfound.txt', "a")
-                print >> logfile, len(a["results"]), lon, lat, text
+                print(len(a["results"]), lon, lat, text, file=logfile)
                 logfile.close()
         except:
             pass

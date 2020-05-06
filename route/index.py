@@ -6,14 +6,7 @@ import os
 import web
 import sys
 import psycopg2
-import urllib
-import urllib2
 import re
-
-reload(sys)
-sys.setdefaultencoding("utf-8")          # a hack to support UTF-8
-
-from lxml import etree
 
 web.config.debug = False
 
@@ -50,7 +43,7 @@ def postgis_query_geojson(query, geomcolumn="way"):
     polygons = []
     for row in database_cursor.fetchall():
       geom = dict(map(None,names,row))
-      for t in geom.keys():
+      for t in list(geom.keys()):
         if not geom[t]:
           del geom[t]
       geojson = json.loads(geom[geomcolumn])
@@ -58,7 +51,7 @@ def postgis_query_geojson(query, geomcolumn="way"):
       if geojson["type"] == "GeometryCollection":
         continue
       prop = {}
-      for k,v in geom.iteritems():
+      for k,v in geom.items():
         prop[k] = v
         try:
           if int(v) == float(v):
