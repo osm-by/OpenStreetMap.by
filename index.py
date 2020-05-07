@@ -628,7 +628,7 @@ def face_main(data):
             r = redis.Redis(host='localhost', port=6379, db=0)
             tt = [(i.split('%')[0], float(i.split('%')[1])) for i in tt.split('|')]
             for i in tt:
-                r.zincrby('locale:' + lang, i[0], i[1])
+                r.zincrby('locale:' + lang, i[1], i[0])
         a = "ok"
 
     else:
