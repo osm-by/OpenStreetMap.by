@@ -179,7 +179,7 @@ def postgis_query_geojson(query, geomcolumn="way"):
     names = [q[0] for q in database_cursor.description]
     polygons = []
     for row in database_cursor.fetchall():
-        geom = dict(map(None, names, row))
+        geom = dict(zip(names, row))
         for t in list(geom.keys()):
             if not geom[t]:
                 del geom[t]
