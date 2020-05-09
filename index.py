@@ -17,7 +17,7 @@ web.config.debug = False
 from web.contrib.template import render_cheetah
 
 GeoIpCache = GeoIP.open('GeoLiteCity.dat', GeoIP.GEOIP_MEMORY_CACHE)
-pg_database = "dbname=gis user=gis"
+pg_database = f"host={os.environ['POSTGRES_HOST']} dbname={os.environ['POSTGRES_DB']} user={os.environ['POSTGRES_USER']} password={os.environ['POSTGRES_PASSWORD']}"
 
 LOCALES = ['be', 'be-tarask', 'ru', 'en', 'none']
 
@@ -578,7 +578,7 @@ def face_main(data):
 
         zoom = float(data.get("zoom", 10))
         userid = data.get("id", "none")
-        r = redis.Redis(host='localhost', port=6379, db=0)
+        r = redis.Redis(host=os.environ['REDIS_HOST'], port=int(os.environ['REDIS_PORT']), db=int(os.environ['REDIS_DB']))
         r.rpush("osmbyusers:" + userip + ":" + userid, json.dumps([lat, lon, zoom, locale, time.time()]))
         r.expire("osmbyusers:" + userip + ":" + userid, 3600)
         a = {"breadcrumbs": geocoder_describe((lon, lat), zoom, locale)}
@@ -586,7 +586,7 @@ def face_main(data):
 
     elif data.get('request') == 'getusersnow':
         content_type = "text/javascript"
-        r = redis.Redis(host='localhost', port=6379, db=0)
+        r = redis.Redis(host=os.environ['REDIS_HOST'], port=int(os.environ['REDIS_PORT']), db=int(os.environ['REDIS_DB']))
         a = r.keys("osmbyusers*")
         b = []
         for i in a:
@@ -625,7 +625,7 @@ def face_main(data):
         lang = data.get("lang", None)
         tt = data.get("lines", "|")[:-1]  # string%1|string2%3
         if (lang in LOCALES) and tt:
-            r = redis.Redis(host='localhost', port=6379, db=0)
+            r = redis.Redis(host=os.environ['REDIS_HOST'], port=int(os.environ['REDIS_PORT']), db=int(os.environ['REDIS_DB']))
             tt = [(i.split('%')[0], float(i.split('%')[1])) for i in tt.split('|')]
             for i in tt:
                 r.zincrby('locale:' + lang, i[1], i[0])
