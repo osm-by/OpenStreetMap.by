@@ -1,5 +1,5 @@
 ## Schema of openstreetmap.by work
-## NOTE: tileserver can be replaced with nginx tile data serving
+## NOTE: tileserver can be replaced with serving tile data as standard static data serving by nginx
 #
 #                  nginx
 #                    |

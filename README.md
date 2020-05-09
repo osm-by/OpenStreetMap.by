@@ -40,7 +40,7 @@ Project contains 2 major parts:
                    updater-belarus
 
 
-*NOTE: tileserver can be replaced with nginx tile data serving.*
+*NOTE: tileserver can be replaced with serving tile data as standard static data serving by nginx.*
 
 `redis` store only untranslated text keys.
 
