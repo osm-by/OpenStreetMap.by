@@ -3,7 +3,7 @@ set -x
 
 
 # install dependencies
-sudo apt-get install wget unzip patch gawk build-essential python3 python3-venv postgresql-client osm2pgsql
+sudo apt-get install wget unzip patch gawk docker-compose build-essential python3 python3-venv postgresql-client osm2pgsql
 
 
 # check docker installed
@@ -22,7 +22,6 @@ cd ..
 
 # create venv
 python3 -m venv venv
-venv/bin/pip install docker-compose
 
 
 # create tile data
