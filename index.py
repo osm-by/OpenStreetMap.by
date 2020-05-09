@@ -19,7 +19,7 @@ from web.contrib.template import render_cheetah
 GeoIpCache = GeoIP.open('GeoLiteCity.dat', GeoIP.GEOIP_MEMORY_CACHE)
 pg_database = "dbname=gis user=gis"
 
-LOCALES = ['be', 'ru', 'en', 'none']
+LOCALES = ['be', 'be-tarask', 'ru', 'en', 'none']
 
 OK = 200
 ERROR = 500
@@ -569,7 +569,7 @@ def face_main(data):
     locale = data.get("lang", "be")
     userip = os.environ.get("REMOTE_ADDR", "0.0.0.0")
 
-    if locale not in ('en', 'ru', 'be'):
+    if locale not in ('en', 'ru', 'be', 'be-tarask'):
         locale = "be"
     if data.get('request') == 'describe':
         content_type = "text/javascript"
