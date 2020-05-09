@@ -685,7 +685,7 @@ if __name__ == "__main__":
                 return h.read()
 
     urls = (
-        '/(favicon.ico|main.css|smallscreen.css|helper.js|bright-v9-cdn.json|js/.*|img/.*)', 'StaticHandler',
+        '/(favicon.ico|main.css|smallscreen.css|helper.js|js/.*|img/.*)', 'StaticHandler',
     ) + urls
 
     app = web.application(urls, globals())

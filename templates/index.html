@@ -7,8 +7,9 @@
 
     <meta http-equiv="X-UA-Compatible" content="chrome=1"/>
 
-    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v0.28.0/mapbox-gl.js"></script>
-    <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v0.28.0/mapbox-gl.css" rel="stylesheet"/>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.css" rel="stylesheet" />
+    <script src="js/openmaptiles-language.js"></script>
 
     <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css"/>
 
@@ -32,7 +33,6 @@
     <script src="/js/jquery.longclick.js"></script>
     <script src="/js/jquery.contextmenu.js"></script>
     <script src="/js/context.js"></script>
-    <script src="/js/map_language.js"></script>
 
     <script language="javascript" type="text/javascript">
 var mmap;
@@ -120,14 +120,17 @@ locale="$locale";
 <script><!--
   mmap = new mapboxgl.Map({
     container: 'map',
-    style: 'bright-v9-cdn.json',
+    style: 'styles/bright/style.json',
     center: [$longitude, $latitude], //lng lat
     zoom: $zoom,
     hash: true
   });
-  mmap.on('load', function() {
-    setMapLanguage(mmap, locale);
-  });
+ if (locale === 'en') {
+    mmap.setLanguage(locale, false);
+ } else {
+    mmap.setLanguage(locale, true);
+ }
+
 //-->
 </script>
 <script src="/js/i18n.js"></script>
