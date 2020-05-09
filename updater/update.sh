@@ -31,7 +31,7 @@ if [ ! -f "styles/bright/style.json.gz" ] ; then
     sed -i "s,mbtiles://{v3},$SITE/data/v3.json," style.json
     sed -i "s,{styleJsonFolder}/sprite,$SITE/styles/${PWD##*/}/sprite," style.json
     sed -i "s,{fontstack}/{range}.pbf,$SITE/fonts/{fontstack}/{range}.pbf," style.json
-    gzip -kf *.json
+    gzip -kf9 *.json
     cd ..
 
     cd ..
@@ -55,7 +55,7 @@ if [ ! -f "fonts/Noto Sans Regular/0-255.pbf.gz" ] ; then
     wget https://github.com/openmaptiles/fonts/releases/download/v2.0/v2.0.zip
     unzip -o *.zip
     rm -f *.zip
-    gzip -rkf .
+    gzip -rkf9 .
     cd ..
     echo "fonts updated"
 else
@@ -151,7 +151,7 @@ cd ..
 echo ===============================================================================================
 echo "## update tile data info (if not exists)"
 echo -----------------------------------------------------------------------------------------------
-if [ ! -f "data/v3.json.gz" ] ; then
+if [ ! -f "tiledata/data/v3.json.gz" ] ; then
   docker-compose up -d tileserver
   sleep 5
   TILESERVER_HOST_DOCKER=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'\
@@ -165,7 +165,7 @@ if [ ! -f "data/v3.json.gz" ] ; then
     rm -f v3.json*
     wget http://$TILESERVER_HOST_DOCKER:8081/data/v3.json
     sed -i "s,http://$TILESERVER_HOST_DOCKER:8081/data/v3/{z}/{x}/{y}.pbf,$SITE/data/v3/{z}/{x}/{y}.pbf," v3.json
-    gzip -f v3.json
+    gzip -f9 v3.json
     cd ..
     echo "tile data info updated"
 else
