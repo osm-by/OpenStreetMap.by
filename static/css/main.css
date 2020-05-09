@@ -75,7 +75,7 @@ td{margin:0;padding:2}
 }
 
 .leaflet-control-embed-button {
-  background-image: url(img/embed2.png);
+  background-image: url(/static/img/embed2.png);
   margin-bottom: 5px;
 }
 
@@ -106,7 +106,7 @@ s {
 .context-menu-theme-xp {
   border:1px solid #666;
   padding:1px;
-  background:#F9F8F7 url(/img/cmenu-xp-bg.gif) repeat-y top left;
+  background:#F9F8F7 url(/static/img/cmenu-xp-bg.gif) repeat-y top left;
 }
 .context-menu-theme-xp .context-menu-separator {
   margin:4px 2px;
@@ -211,7 +211,7 @@ s {
 
 .leaflet-control-zoom-locate,
 .leaflet-control-zoom-edit { margin-top:5px; }
-.leaflet-control-zoom-locate { background:url('/img/locate.png'); }
+.leaflet-control-zoom-locate { background:url('/static/img/locate.png'); }
 
 
 

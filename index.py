@@ -679,15 +679,6 @@ def face_main(data):
 
 
 if __name__ == "__main__":
-    class StaticHandler:
-        def GET(self, file_name):
-            with open(file_name, 'rb') as h:
-                return h.read()
-
-    urls = (
-        '/(favicon.ico|main.css|smallscreen.css|helper.js|js/.*|img/.*)', 'StaticHandler',
-    ) + urls
-
     app = web.application(urls, globals())
     app.run()  # standalone run
 

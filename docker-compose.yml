@@ -68,14 +68,7 @@ services:
     volumes:
         # static data
       - ./embed.html:/app/embed.html:ro
-      - ./favicon.ico:/app/favicon.ico:ro
-      - ./main.css:/app/main.css:ro
-      - ./smallscreen.css:/app/smallscreen.css:ro
-      - ./helper.js:/app/helper.js:ro
-      - ./js:/app/js:ro
-      - ./img:/app/img:ro
-      - ./opensearch.xml:/app/opensearch.xml:ro
-      - ./robots.txt:/app/robots.txt:ro
+      - ./static:/app/static:ro
         # tile data
       - ./tiledata:/data:ro  # shared with openmaptiles updater
         # site config
