@@ -1,0 +1,37 @@
+diff --git a/Makefile b/Makefile
+index 5ce2248..6b63487 100644
+--- a/Makefile
++++ b/Makefile
+@@ -95,6 +95,7 @@ init-dirs:
+ build/openmaptiles.tm2source/data.yml: init-dirs
+ 	mkdir -p build/openmaptiles.tm2source
+ 	$(DOCKER_COMPOSE) run $(DC_OPTS) openmaptiles-tools generate-tm2source openmaptiles.yaml --host="postgres" --port=5432 --database="openmaptiles" --user="openmaptiles" --password="openmaptiles" > $@
++	sed -i "s/NULLIF(tags->'name:be-tarask'/NULLIF(COALESCE(tags->'name:be-tarask', tags->'name:be')/g" $@
+ 
+ build/mapping.yaml: init-dirs
+ 	$(DOCKER_COMPOSE) run $(DC_OPTS) openmaptiles-tools generate-imposm3 openmaptiles.yaml > $@
+diff --git a/openmaptiles.yaml b/openmaptiles.yaml
+index f4900eb..af50b00 100644
+--- a/openmaptiles.yaml
++++ b/openmaptiles.yaml
+@@ -31,6 +31,7 @@ tileset:
+     - ar # Arabic
+     - az # Azerbaijani, Latin
+     - be # Belorussian
++    - be-tarask # Belarusian Taraškevica
+     - bg # Bulgarian
+     - br # Breton, Latin
+     - bs # Bosnian, Latin
+diff --git a/quickstart.sh b/quickstart.sh
+index 0ea0cc7..bcd786b 100755
+--- a/quickstart.sh
++++ b/quickstart.sh
+@@ -35,7 +35,7 @@ MIN_COMPOSE_VER=1.7.1
+ MIN_DOCKER_VER=1.12.3
+ STARTTIME=$(date +%s)
+ STARTDATE=$(date +"%Y-%m-%dT%H:%M%z")
+-githash=$( git rev-parse HEAD )
++githash=master
+ 
+ log_file=./quickstart.log
+ rm -f $log_file
