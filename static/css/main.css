@@ -187,7 +187,7 @@ s {
 .topmenu {float:right;}
 .topmenu a,.search input[type=submit] {
   padding: 2px 9px;
-  margin-left:2px:
+  margin-left:2px;
   vertical-align:middle;
   font-size:10pt;
   background: #e4e4e4;
