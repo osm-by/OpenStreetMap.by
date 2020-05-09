@@ -21,7 +21,7 @@ version: "3.8"
 services:
   webapp:
     build: .
-    command: venv/bin/gunicorn index:application --bind 0.0.0.0:8080
+    command: venv/bin/gunicorn index:application -w 4 --bind 0.0.0.0:8080
     depends_on:
       - postgis
       - redis
