@@ -118,9 +118,9 @@ cd openmaptiles
 sed -i -r 's/BBOX:.+$/BBOX: -180.0000000,-90.0000000,180.0000000,90.0000000/g' data/docker-compose-config.yml
 sed -i -r 's/OSM_AREA_NAME:.+$/OSM_AREA_NAME: planet/g' data/docker-compose-config.yml
 sed -i -r 's/MAX_ZOOM:.+$/MAX_ZOOM: 4/g' data/docker-compose-config.yml
-make db-start
+make start-db
 make generate-tiles
-make db-stop
+make stop-db
 mv data/tiles.mbtiles ../tiledata/planet.mbtiles
 
 cd ..
