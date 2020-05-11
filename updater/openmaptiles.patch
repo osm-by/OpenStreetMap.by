@@ -1,5 +1,5 @@
 diff --git a/Makefile b/Makefile
-index 5ce2248..6b63487 100644
+index 5b7d884..38cc646 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -95,6 +95,7 @@ init-dirs:
@@ -10,6 +10,15 @@ index 5ce2248..6b63487 100644
  
  build/mapping.yaml: init-dirs
  	$(DOCKER_COMPOSE) run $(DC_OPTS) openmaptiles-tools generate-imposm3 openmaptiles.yaml > $@
+@@ -280,6 +281,8 @@ bash:
+ .PHONY: import-wikidata
+ import-wikidata:
+ 	$(DOCKER_COMPOSE) run $(DC_OPTS) openmaptiles-tools import-wikidata --cache /cache/wikidata-cache.json openmaptiles.yaml
++	$(DOCKER_COMPOSE) run $(DC_OPTS) openmaptiles-tools psql.sh -v ON_ERROR_STOP=1 -P pager=off \
++	    -c "UPDATE wd_names SET labels = labels || hstore('name:be-tarask', REGEXP_REPLACE(labels->'name:be-tarask', ' *\(.+\) *', '') ) WHERE labels->'name:be-tarask' LIKE '%(%)%';"
+ 
+ .PHONY: reset-db-stats
+ reset-db-stats:
 diff --git a/openmaptiles.yaml b/openmaptiles.yaml
 index f4900eb..af50b00 100644
 --- a/openmaptiles.yaml
@@ -23,7 +32,7 @@ index f4900eb..af50b00 100644
      - br # Breton, Latin
      - bs # Bosnian, Latin
 diff --git a/quickstart.sh b/quickstart.sh
-index 0ea0cc7..bcd786b 100755
+index b788c16..f0fc4b6 100755
 --- a/quickstart.sh
 +++ b/quickstart.sh
 @@ -35,7 +35,7 @@ MIN_COMPOSE_VER=1.7.1
