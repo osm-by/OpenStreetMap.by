@@ -21,13 +21,13 @@ for row in c.execute("SELECT zoom_level, tile_column, tile_row, tile_data FROM t
     )
     parent_dir = os.path.dirname(file_name)
     os.makedirs(parent_dir, exist_ok=True)
+    if os.path.exists(file_name):
+        os.remove(file_name)  # unlink hardlinks
     if tile_data not in duplicates:
         with open(file_name, 'wb') as handler:
             handler.write(tile_data)
         duplicates[tile_data] = file_name
     else:
-        if os.path.exists(file_name):
-            os.remove(file_name)
         os.link(duplicates[tile_data], file_name)
 
 conn.close()
