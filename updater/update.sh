@@ -90,7 +90,7 @@ PGPASSWORD=$POSTGRES_PASSWORD psql \
   -c "CREATE EXTENSION IF NOT EXISTS hstore"
 PGPASSWORD=$POSTGRES_PASSWORD osm2pgsql \
   -H $POSTGRES_HOST_DOCKER -P $POSTGRES_POST -U $POSTGRES_USER -d $POSTGRES_DB \
-  -m -j -G --hstore-add-index -C 10000 belarus-latest.osm.pbf
+  -m -j -G -x --hstore-add-index -C 10000 -S ../osm2pgsql/osm2pgsql.style belarus-latest.osm.pbf
 
 cd ..
 
