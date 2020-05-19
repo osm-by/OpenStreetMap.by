@@ -1,0 +1,80 @@
+## Schema of openstreetmap.by work
+## NOTE: tileserver can be replaced with serving tile data as standard static data serving by nginx
+#
+#                  nginx
+#                    |
+#   --------------------------
+#   |         |              |
+# static---webapp       (tileserver)
+#             |              |
+#         ----------         |
+#         |        |         |
+#       redis   postgis   tiledata
+#                  |         |
+# =================+=========+=========
+#                  |         |
+#                updater-belarus
+
+version: "3.8"
+
+
+services:
+  webapp:
+    build: .
+    command: venv/bin/gunicorn index:application -w 4 --bind 0.0.0.0:8080
+    depends_on:
+      - postgis
+      - redis
+    env_file: .env
+    #ports:
+    #  - 8080:8080  # for dev purpose
+    volumes:
+      - ./templates:/app/templates:ro
+      - ./index.py:/app/index.py:ro
+      - ./GeoLiteCity.dat:/app/GeoLiteCity.dat:ro
+      - ./cities.txt:/app/cities.txt:ro
+      - ./ru.txt:/app/ru.txt:ro
+
+  tileserver:
+    image: maptiler/tileserver-gl:v3.0.0
+    command: tileserver-gl --config /app/tileserver-gl/config.json --port 8081
+    #ports:
+    #  - 8081:8081  # for dev purpose
+    volumes:
+        # tile data
+      - ./tiledata:/data:ro  # shared with openmaptiles updater
+        # config
+      - ./tileserver-gl/config.json:/app/tileserver-gl/config.json:ro
+
+  postgis:
+    image: postgis/postgis:12-3.0-alpine
+    env_file: .env
+    #ports:
+    #  - 5432:5432  # for dev purpose
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:6.0-alpine
+    #ports:
+    #  - 6379:6379  # for dev purpose
+
+  nginx:
+    image: nginx:1.18-alpine
+    depends_on:
+      - webapp
+    ports:
+      - 80:80
+    volumes:
+        # static data
+      - ./embed.html:/app/embed.html:ro
+      - ./static:/app/static:ro
+        # tile data
+      - ./tiledata:/data:ro  # shared with openmaptiles updater
+        # site config
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/openstreetmap.by.conf:/etc/nginx/conf.d/default.conf:ro
+
+
+volumes:
+  pgdata:

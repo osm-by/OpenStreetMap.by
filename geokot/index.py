@@ -6,14 +6,7 @@ import os
 import web
 import sys
 import psycopg2
-import urllib
-import urllib2
 import re
-
-reload(sys)
-sys.setdefaultencoding("utf-8")          # a hack to support UTF-8
-
-from lxml import etree
 
 web.config.debug = False
 
@@ -54,7 +47,8 @@ def get_name_string(locale):
   return namestring
 
 
-def geocoder_describe((lon,lat), zoom, locale):
+def geocoder_describe(lon_lat, zoom, locale):
+  lon,lat = lon_lat
   bbox = True
   
   database_connection = psycopg2.connect(pg_database)
@@ -542,7 +536,8 @@ def geocoder_describe((lon,lat), zoom, locale):
   return descr
   
 
-def geocoder_describe1((lon,lat), zoom, locale):
+def geocoder_describe1(lon_lat, zoom, locale):
+  lon, lat = lon_lat
   descr = ()
   #try:
   if locale == "en":
@@ -663,8 +658,8 @@ def postgis_query_geojson(query, geomcolumn="way"):
     names = [q[0] for q in database_cursor.description]
     polygons = []
     for row in database_cursor.fetchall():
-      geom = dict(map(None,names,row))
-      for t in geom.keys():
+      geom = dict(zip(names, row))
+      for t in list(geom.keys()):
         if not geom[t]:
           del geom[t]
       geojson = json.loads(geom[geomcolumn])
@@ -672,7 +667,7 @@ def postgis_query_geojson(query, geomcolumn="way"):
       if geojson["type"] == "GeometryCollection":
         continue
       prop = {}
-      for k,v in geom.iteritems():
+      for k,v in geom.items():
         prop[k] = v
         try:
           if int(v) == float(v):
@@ -690,7 +685,8 @@ def postgis_query_geojson(query, geomcolumn="way"):
   #  return []
 
 
-def geocoder_geocode(text,(lon,lat)):
+def geocoder_geocode(text, lon_lat):
+  lon, lat = lon_lat
   descr = ()
   #try:
   itags = '"addr:street", "addr:housenumber", "name", "name:ru", "name:be", "place", "shop", "amenity", "ref", "admin_level", "osm_id"'
@@ -722,8 +718,8 @@ def geocoder_geocode(text,(lon,lat)):
       text = text.replace(".", ". ")
       text = text.replace("ё", "е")
       text = text.lower().split()
-      rustreets = dict([(' ' + unicode(line).lower().split('#')[0].strip().replace('ё','е') + ' ', unicode(line).split('#')[0].strip()) for line in open("/srv/www/openstreetmap.by/htdocs/ru.txt","r")])
-      cities = dict([(' ' + unicode(line).lower().strip().replace('ё','е') + ' ', unicode(line).strip()) for line in open("/srv/www/openstreetmap.by/htdocs/cities.txt","r")])
+      rustreets = dict([(' ' + str(line).lower().split('#')[0].strip().replace('ё','е') + ' ', str(line).split('#')[0].strip()) for line in open("/srv/www/openstreetmap.by/htdocs/ru.txt","r")])
+      cities = dict([(' ' + str(line).lower().strip().replace('ё','е') + ' ', str(line).strip()) for line in open("/srv/www/openstreetmap.by/htdocs/cities.txt","r")])
       candidates = {}
       citycandidates = {}
       hnos = []
@@ -751,9 +747,9 @@ def geocoder_geocode(text,(lon,lat)):
         "шос.": "шоссе",
         "шоссе": "шоссе",
         }
-      for k,v in status_full.items():
+      for k,v in list(status_full.items()):
         del status_full[k]
-        status_full[unicode(k)] = unicode(v)
+        status_full[str(k)] = str(v)
       for word in text:
         word = word.strip(",").strip(".").lower()
         if not word:
@@ -766,19 +762,19 @@ def geocoder_geocode(text,(lon,lat)):
         if (word not in status_full) and (len(word)>2):
           found = False
           ## Checking cities
-          for k,v in cities.iteritems():
+          for k,v in cities.items():
             if (' ' + word + ' ') in k:
               citycandidates[k] = v
               found = True
               # no inexact substring checks - please write names fully
 
           ## Checking streets
-          for k,v in rustreets.iteritems():
+          for k,v in rustreets.items():
             if (' ' + word + ' ') in k:
               candidates[k] = v
               found = True
           if not found:
-            for k,v in rustreets.iteritems():
+            for k,v in rustreets.items():
               if word in k:
                 candidates[k] = v
       if not candidates and not citycandidates:
@@ -787,24 +783,24 @@ def geocoder_geocode(text,(lon,lat)):
       wherecities = ""
       sqlcities = ""
       if citycandidates:
-        sqlcities = "("+ ", ".join(["E'"+v.replace("\\", "\\\\").replace("'", "\\'")+"'" for k,v in citycandidates.iteritems()]) + ")"
+        sqlcities = "("+ ", ".join(["E'"+v.replace("\\", "\\\\").replace("'", "\\'")+"'" for k,v in citycandidates.items()]) + ")"
         wherecities = "and way && (select ST_Collect(ST_Buffer(way,0.00001)) from planet_osm_polygon where (place in ('city', 'town', 'village', 'hamlet', 'locality') or admin_level in ('4','8','9','10')) and (name in "+sqlcities+")) and ST_Intersects(ST_Buffer(way,0.00001),(select ST_Buffer(ST_Collect(way),0) from planet_osm_polygon where (place in ('city', 'town', 'village', 'hamlet', 'locality') or admin_level in ('4','8','9','10')) and (name in "+sqlcities+"))) "
 
       if streetstatuses:
         for status in streetstatuses:
-          if status in "|".join(candidates.keys()):
-            for can in candidates.keys():
+          if status in "|".join(list(candidates.keys())):
+            for can in list(candidates.keys()):
               if status not in can:
                 del candidates[can]
       if len(candidates) > 20:
         for hno in list(hnos):
-          if hno in "|".join(candidates.keys()):
-            for can in candidates.keys():
+          if hno in "|".join(list(candidates.keys())):
+            for can in list(candidates.keys()):
               if hno not in can:
                 del candidates[can]
             hnos.remove(hno)
       can = set()
-      for k,candidate in candidates.iteritems():
+      for k,candidate in candidates.items():
         can.add(candidate)
         can.add(candidate.lower())
         can.add(candidate.replace("проспект", "просп."))
@@ -941,7 +937,8 @@ order by distance limit %s;"""%(itags, lon, lat, escaped_can, escaped_hnos, '', 
 
 
 
-def organisations_around_point((lon,lat), locale):
+def organisations_around_point(lon_lat, locale):
+  lon, lat = lon_lat
   if locale == "en":
     namestring = """COALESCE(p."name:en",p."int_name", replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(translate(p."name",'абвгдезиклмнопрстуфьАБВГДЕЗИКЛМНОПРСТУФЬ','abvgdeziklmnoprstuf’ABVGDEZIKLMNOPRSTUF’'),'х','kh'),'Х','Kh'),'ц','ts'),'Ц','Ts'),'ч','ch'),'Ч','Ch'),'ш','sh'),'Ш','Sh'),'щ','shch'),'Щ','Shch'),'ъ','”'),'Ъ','”'),'ё','yo'),'Ё','Yo'),'ы','y'),'Ы','Y'),'э','·e'),'Э','E'),'ю','yu'),'Ю','Yu'),'й','y'),'Й','Y'),'я','ya'),'Я','Ya'),'ж','zh'),'Ж','Zh')) AS name"""
   else:
@@ -998,7 +995,7 @@ def face_main(data):
     import redis
     import time
     userid = data.get("id", "none")
-    r = redis.Redis(host='localhost', port=6379, db=0)
+    r = redis.Redis(host='redis', port=6379, db=0)
     r.rpush("osmbyusers:"+userip+":"+userid, json.dumps([lat,lon,zoom, locale, time.time()]))
     r.expire("osmbyusers:"+userip+":"+userid, 3600)
     a = geocoder_describe((lon,lat), zoom, locale)
@@ -1012,11 +1009,11 @@ def face_main(data):
     a["results"] = geocoder_geocode(text,(lon,lat))
     try:
       logfile = open('/srv/www/openstreetmap.by/htdocs/req.txt', "a")
-      print >> logfile, len(a["results"]), lon, lat, text
+      print(len(a["results"]), lon, lat, text, file=logfile)
       logfile.close()
       if len(a["results"]) == 0:
         logfile = open('/srv/www/openstreetmap.by/htdocs/notfound.txt', "a")
-        print >> logfile, len(a["results"]), lon, lat, text
+        print(len(a["results"]), lon, lat, text, file=logfile)
         logfile.close()
     except:
       pass

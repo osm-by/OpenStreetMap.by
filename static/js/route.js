@@ -26,12 +26,12 @@ function updateRoute(){
   }
   mmap.fire('moveend');
   var LeafIcon = L.Icon.extend({
-    iconUrl:'/img/finish.png',
+    iconUrl:'/static/img/finish.png',
     iconSize: new L.Point(32, 37),
     iconAnchor: new L.Point(16, 37)
   })
   if (rtept.length >= 1){
-    routelayer.addLayer(new L.Marker(new L.LatLng(rtept[0][1], rtept[0][0]),{icon:new LeafIcon('/img/start.png'), draggable:true, title:'start'}).on('dragend', function(e){
+    routelayer.addLayer(new L.Marker(new L.LatLng(rtept[0][1], rtept[0][0]),{icon:new LeafIcon('/static/img/start.png'), draggable:true, title:'start'}).on('dragend', function(e){
       routeFrom([e.target.getLatLng().lng,e.target.getLatLng().lat]);
     }));
   }

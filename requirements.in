@@ -1,0 +1,6 @@
+GeoIP
+web.py
+psycopg2-binary
+redis
+Cheetah3
+gunicorn
