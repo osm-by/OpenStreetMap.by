@@ -1,0 +1,28 @@
+{
+  "options": {
+    "paths": {
+      "root": "/data/",
+      "fonts": "fonts",
+      "styles": "styles",
+      "mbtiles": ""
+    },
+    "maxScaleFactor": 3,
+    "maxSize": 2048,
+    "pbfAlias": "pbf",
+    "serveAllFonts": false,
+    "serveAllStyles": false,
+    "serveStaticMaps": false,
+    "tileMargin": 0
+  },
+  "styles": {
+    "bright": {
+      "style": "bright/style-local.json",
+      "serve_data": true
+    }
+  },
+  "data": {
+    "v3": {
+      "mbtiles": "/data/belarus.mbtiles"
+    }
+  }
+}

@@ -4,11 +4,11 @@
 <title>OpenStreetMap.by - embeddable map</title> 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
  
-<script src="https://api.tiles.mapbox.com/mapbox-gl-js/v0.28.0/mapbox-gl.js"></script>
-<link href="https://api.tiles.mapbox.com/mapbox-gl-js/v0.28.0/mapbox-gl.css" rel="stylesheet" />
+<script src="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.css" rel="stylesheet" />
+<script src="/static/js/openmaptiles-language.js"></script>
  
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script> 
-<script src="/js/map_language.js"></script>
 
 <script type="text/javascript"> 
 var mmap; 
@@ -50,18 +50,20 @@ var json_in_progress = false;
     if ((params.lang != 'en') &&
         (params.lang != 'ru') &&
         (params.lang != 'be') &&
-        (params.lang != 'be_tarask'))
+        (params.lang != 'be-tarask'))
       params.lang = 'be';
 
     mmap = new mapboxgl.Map({
       container: 'map',
-      style: 'bright-v9-cdn.json',
+      style: 'styles/bright/style.json',
       center: [params.lon, params.lat], //lng lat
       zoom: params.zoom
     });
-    mmap.on('load', function() {
-      setMapLanguage(mmap, params.lang);
-    });
+    if (params.lang === 'en') {
+       mmap.setLanguage(params.lang, false);
+    } else {
+       mmap.setLanguage(params.lang, true);
+    }
 
     if (params.marker){      
       var markerEl = document.createElement('div');
@@ -80,19 +82,6 @@ var json_in_progress = false;
     }
 
 
-//--></script> 
-
-<!-- Piwik -->  
-<script type="text/javascript"> 
-var pkBaseURL = (("https:" == document.location.protocol) ? "https://openstreetmap.by/piwik/" : "http://openstreetmap.by/piwik/"); 
-document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E")); 
-</script><script type="text/javascript"> 
-try { 
-var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 1); 
-piwikTracker.trackPageView(); 
-piwikTracker.enableLinkTracking(); 
-} catch( err ) {} 
-</script><noscript><p><img src="http://openstreetmap.by/piwik/piwik.php?idsite=1" style="border:0" alt="" /></p></noscript> 
-<!-- End Piwik Tracking Code --> 
+//--></script>
 </body> 
 </html> 
