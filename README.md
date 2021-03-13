@@ -1,11 +1,18 @@
-# Overview of openstreetmap.by project work
+# openstreetmap.by is
 
-Project contains 2 major parts:
-1. http://openstreetmap.by web part
-2. data updater
+1. http://openstreetmap.by web site
+2. OSM data with updater
    1. postgres data update based on [`osm2pgsql`](https://github.com/openstreetmap/osm2pgsql) 
    2. vector tiles update based on [`openmaptiles`](https://github.com/openmaptiles/openmaptiles)
 
+# Hardware
+
+Since 2020 OpenStreetMap.by runs on 64Gb RAM and 2x512 SSD server
+at https://www.hetzner.com and costs @Komzpa 40.80 EUR monthly.
+
+![OpenStreetMap.by Hardware](docs/server.jpg)
+
+# Software
 
 ## Initialize project
  
