@@ -31,7 +31,7 @@ if [ ! -f "styles/bright/style.json.gz" ] ; then
     sed -i "s,mbtiles://{v3},$SITE/data/v3.json," style.json
     sed -i "s,{styleJsonFolder}/sprite,$SITE/styles/${PWD##*/}/sprite," style.json
     sed -i "s,{fontstack}/{range}.pbf,$SITE/fonts/{fontstack}/{range}.pbf," style.json
-    patch style.json < ../../../tileserver-gl/osm-bright-gl-style.json.diff
+    patch style.json < ../../../updater/osm-bright-gl-style.json.diff
     gzip -kf9 *.json
     cd ..
 
