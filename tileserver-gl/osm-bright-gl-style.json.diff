@@ -1,0 +1,77 @@
+--- tileserver-gl/style-orig.json	2020-05-09 12:43:18.000000000 +0300
++++ tileserver-gl/style-upd.json	2021-03-13 23:12:40.793251406 +0300
+@@ -755,28 +755,6 @@
+       }
+     },
+     {
+-      "id": "water-pattern",
+-      "type": "fill",
+-      "metadata": {
+-        "mapbox:group": "1444849382550.77"
+-      },
+-      "source": "openmaptiles",
+-      "source-layer": "water",
+-      "filter": [
+-        "all"
+-      ],
+-      "layout": {
+-        "visibility": "visible"
+-      },
+-      "paint": {
+-        "fill-pattern": "wave",
+-        "fill-translate": [
+-          0,
+-          2.5
+-        ]
+-      }
+-    },
+-    {
+       "id": "landcover-ice-shelf",
+       "type": "fill",
+       "metadata": {
+@@ -907,6 +885,45 @@
+       }
+     },
+     {
++     "id": "housenumber",
++     "type": "symbol",
++     "source": "openmaptiles",
++     "source-layer": "housenumber",
++     "minzoom": 15,
++     "filter": [
++       "==",
++       "$type",
++       "Point"
++     ],
++     "layout": {
++       "text-field": "{housenumber}",
++       "text-font": [
++         "Noto Sans Regular"
++       ],
++       "text-size": [
++         "interpolate",
++         ["linear"],
++         ["zoom"],
++         15,
++         9,
++         17,
++         12
++       ]
++     },
++     "paint": {
++       "text-color": "rgba(150, 130, 115, 1)",
++       "text-opacity": [
++         "interpolate",
++         ["linear"],
++         ["zoom"],
++         15,
++         0.75,
++         17,
++         1
++       ]
++     }
++    },
++    {
+       "id": "tunnel-service-track-casing",
+       "type": "line",
+       "metadata": {
