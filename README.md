@@ -87,14 +87,13 @@ As part of the styles used appropriate [fonts](https://github.com/openmaptiles/f
 
 ### mbtiles generation
 
-See https://github.com/openmaptiles/openmaptiles.
+See https://github.com/osm-by/openmaptiles (slightly modified fork of https://github.com/openmaptiles/openmaptiles).
 
-    git clone https://github.com/openmaptiles/openmaptiles/archive/master.zip
+    git clone https://github.com/osm-by/openmaptiles.git
     cd openmaptiles
     python3 -m venv venv
     . venv/bin/activate
     pip install docker-compose
-    patch < updater/openmaptiles.patch  # optional
     ./quickstart.sh belarus
 
 ### tileserver run
