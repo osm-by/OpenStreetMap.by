@@ -84,7 +84,7 @@ function context_menu(e){
     menu.push(item);
   }else{
     var item = {};
-    item[_("Edit on OpenStreetMap.org")] = function(menuItemClicked,menuObject) { window.open('http://openstreetmap.org/edit?lon='+wherenow.lng+'&lat='+wherenow.lat+'&zoom='+mmap.getZoom(),"_blank")};
+    item[_("Edit on OpenStreetMap.org")] = function(menuItemClicked,menuObject) { window.open('https://openstreetmap.org/edit?lon='+wherenow.lng+'&lat='+wherenow.lat+'&zoom='+mmap.getZoom(),"_blank")};
     menu.push(item);
   };
   return menu

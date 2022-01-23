@@ -48,7 +48,7 @@ function updateRoute(){
   
   $('body').css('cursor', 'wait');
   if (currequest) {currequest.abort();};
-  currequest = $.getJSON("http://2.osmosnimki.ru/route/api/dev/?via="+via+"&v="+vehrename[vehicle]+"&fast=1&format=json&callback=?", function(data){
+  currequest = $.getJSON("https://2.osmosnimki.ru/route/api/dev/?via="+via+"&v="+vehrename[vehicle]+"&fast=1&format=json&callback=?", function(data){
     currentRoute = data;
     var lonlats = []
     for (var i=0; i<data.path[0].length; i++){
@@ -71,13 +71,13 @@ function updateRoute(){
           prettytime += ((((roundedtime>=60) && (roundedtime % 60)<10))?"0":'')+ (roundedtime % 60) + ((roundedtime<60)?' '+ _("min"):'');
       
       $("#statuspanel").html(
-        ((vehicle=="bike")?"<a href='http://2.osmosnimki.ru/route/api/dev/?via="+rtept.join(';')+"&v=bike&fast=1&format=gpx'>"+_("Get route as GPX")+"</a><br />":"")+
+        ((vehicle=="bike")?"<a href='https://2.osmosnimki.ru/route/api/dev/?via="+rtept.join(';')+"&v=bike&fast=1&format=gpx'>"+_("Get route as GPX")+"</a><br />":"")+
         "<b>"+_("Route length:")+"</b> "+prettydistance+"<br />"+
         ((vehicle=='car' || vehicle == 'taxi')?("<b>"+_("Travel time:")+"</b> "+prettytime+"<br />"):'')
       );
       
       if (vehicle == "taxi" && canRouteTaxi()){
-        $.getJSON("http://taxi.andreylis.belinfonet.by/osmAPI?callback=?", {time: data.time/60, distance:data.distance}, function(data){
+        $.getJSON("https://taxi.andreylis.belinfonet.by/osmAPI?callback=?", {time: data.time/60, distance:data.distance}, function(data){
           var b = "<table><tr><td><b>"+_("Service Phone")+"</b></td><td><b>"+_("Price (est.)")+"</b></td></tr>";
           for (i in data){
             b += "<tr><td align='center'>"+i+"</td><td align='right'>"+(Math.floor(Math.ceil(data[i]/1000)*1000)).toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1 ") + _(" BYR")+"</td></tr>";

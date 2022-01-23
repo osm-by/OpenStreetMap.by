@@ -4,5 +4,5 @@
  <Description>OpenStreetMap search</Description>
  <Tags>osm maps geocode</Tags>
  <Url type="text/html"
-      template="http://openstreetmap.by/?q={searchTerms}"/>
+      template="https://openstreetmap.by/?q={searchTerms}"/>
 </OpenSearchDescription>

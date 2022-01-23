@@ -12,16 +12,16 @@ if (!$.cookie('userid')){
 
 $().ready( function(){
 
-  var kosmoUrl = 'http://{s}.tile.openstreetmap.by:3128/osmby-ru/{z}/{x}/{y}.png';
+  var kosmoUrl = 'https://{s}.tile.openstreetmap.by:3128/osmby-ru/{z}/{x}/{y}.png';
 
    if (locale == 'en'){
-    var kosmoUrl = 'http://{s}.tile.openstreetmap.by:3128/osmby-en/{z}/{x}/{y}.png';
+    var kosmoUrl = 'https://{s}.tile.openstreetmap.by:3128/osmby-en/{z}/{x}/{y}.png';
   } else if (locale == 'ru') {
-    var kosmoUrl = 'http://{s}.tile.openstreetmap.by:3128/osmby-ru/{z}/{x}/{y}.png';
+    var kosmoUrl = 'https://{s}.tile.openstreetmap.by:3128/osmby-ru/{z}/{x}/{y}.png';
   } else if (locale == 'be') {
-    var kosmoUrl = 'http://{s}.tile.openstreetmap.by:3128/osmby-be/{z}/{x}/{y}.png';
+    var kosmoUrl = 'https://{s}.tile.openstreetmap.by:3128/osmby-be/{z}/{x}/{y}.png';
   }// else if (locale == 'none') {
-    //var kosmoUrl = 'http://{s}.tile.osmosnimki.ru/kosmo-blank/{z}/{x}/{y}.png';
+    //var kosmoUrl = 'https://{s}.tile.osmosnimki.ru/kosmo-blank/{z}/{x}/{y}.png';
  // }
   
   mmap.on('click', function(e){
