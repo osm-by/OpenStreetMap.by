@@ -5,7 +5,7 @@ set -o nounset
 
 
 # install dependencies
-apt-get install wget unzip patch gawk bc build-essential python3 python3-venv postgresql-client osm2pgsql --no-install-recommends
+apt-get install md5sum gawk bc build-essential python3 python3-venv --no-install-recommends
 
 
 # check docker installed
