@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  webapp:
+    ports:
+      - 8080:8080  # for dev purpose
+
+  tileserver:
+    ports:
+      - 8081:8081  # for dev purpose
+
+  postgis:
+    ports:
+      - 5432:5432  # for dev purpose
+
+  redis:
+    ports:
+      - 6379:6379  # for dev purpose

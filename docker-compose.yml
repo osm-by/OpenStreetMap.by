@@ -19,15 +19,26 @@ version: "3.8"
 
 
 services:
+  management:
+    build:
+      context: .
+      dockerfile: Dockerfile-management
+    depends_on:
+      - postgis
+      - tileserver
+    env_file: .env
+    volumes:
+      - .:/app
+
   webapp:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile-webapp
     command: venv/bin/gunicorn index:application -w 4 --bind 0.0.0.0:8080
     depends_on:
       - postgis
       - redis
     env_file: .env
-    #ports:
-    #  - 8080:8080  # for dev purpose
     volumes:
       - ./templates:/app/templates:ro
       - ./index.py:/app/index.py:ro
@@ -38,8 +49,6 @@ services:
   tileserver:
     image: maptiler/tileserver-gl:v3.0.0
     command: tileserver-gl --config /app/tileserver-gl/config.json --port 8081
-    #ports:
-    #  - 8081:8081  # for dev purpose
     volumes:
         # tile data
       - ./tiledata:/data:ro  # shared with openmaptiles updater
@@ -49,15 +58,11 @@ services:
   postgis:
     image: postgis/postgis:12-3.0-alpine
     env_file: .env
-    #ports:
-    #  - 5432:5432  # for dev purpose
     volumes:
       - pgdata:/var/lib/postgresql/data
 
   redis:
     image: redis:6.0-alpine
-    #ports:
-    #  - 6379:6379  # for dev purpose
 
   nginx:
     image: nginx:1.18-alpine
