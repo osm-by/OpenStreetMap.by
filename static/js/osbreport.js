@@ -24,5 +24,5 @@ function reportOSB(){
   text += $("#osbreport_text").val();
   text += " ["+$("#osbreport_username").val() + "@openstreetmap.by]";
   $.cookie("username",$("#osbreport_username").val());
-  $.getJSON('http://openstreetbugs.schokokeks.org/api/0.1/addPOIexec?cb=?',{lat: wherenow.lat, lon: wherenow.lng, format: 'js', text: text}, function(data){});
+  $.getJSON('https://openstreetbugs.schokokeks.org/api/0.1/addPOIexec?cb=?',{lat: wherenow.lat, lon: wherenow.lng, format: 'js', text: text}, function(data){});
 }

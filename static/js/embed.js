@@ -50,7 +50,7 @@ L.Control.Embed = L.Class.extend({
 
 function redrawEmbed(){
   $("#embed_marker:checked").val()?$('#embed_marker_label_div').show():$('#embed_marker_label_div').hide();
-  $('#embedtext').html('<iframe width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://openstreetmap.by/embed'+
+  $('#embedtext').html('<iframe width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://openstreetmap.by/embed'+
   '?lat=' + mmap.getCenter().lat +
   '&amp;lon=' + mmap.getCenter().lng +
   '&amp;zoom=' + mmap.getZoom() + 
