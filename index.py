@@ -168,7 +168,6 @@ def geocoder_describe(lon_lat, zoom, locale):
 
 
 def postgis_query_geojson(query, geomcolumn="way"):
-    # try:
     database_connection = psycopg2.connect(pg_database)
     database_cursor = database_connection.cursor()
     try:
@@ -176,6 +175,7 @@ def postgis_query_geojson(query, geomcolumn="way"):
     except:
         print("QUERY FAILURE: ", query, file=sys.stderr)
         sys.stderr.flush()
+        raise
     names = [q[0] for q in database_cursor.description]
     polygons = []
     for row in database_cursor.fetchall():
@@ -202,8 +202,6 @@ def postgis_query_geojson(query, geomcolumn="way"):
         geojson["properties"] = prop
         polygons.append(geojson)
     return polygons
-    # except:
-    #  return []
 
 
 def geocoder_geocode(text, lon_lat):
