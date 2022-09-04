@@ -1,7 +1,9 @@
-# openstreetmap.by is
+# openstreetmap.by project is
 
-1. http://openstreetmap.by web site
-2. OSM data with updater
+1. sources for https://openstreetmap.by web site, which runs
+   * OSM [tileserver](https://stackoverflow.com/questions/11079741/what-is-tile-server-in-osm-maps/11095561#11095561)
+   * web frontend using custom HTML + JavaScript
+3. OSM data builder with updater
    1. postgres data update based on [`osm2pgsql`](https://github.com/openstreetmap/osm2pgsql) 
    2. vector tiles update based on [`openmaptiles`](https://github.com/openmaptiles/openmaptiles)
 
