@@ -15,7 +15,7 @@ rm -f data/planet.bbox
 ln -f ../tiledata/belarus-latest.osm.pbf data/planet.osm.pbf
 sed -r 's/MAX_ZOOM=.+$/MAX_ZOOM=4/g' .env > .env.tmp && mv .env.tmp .env
 make start-db
-make generate-tiles
+make generate-tiles-pg
 make stop-db
 mv data/tiles.mbtiles ../tiledata/planet.mbtiles
 

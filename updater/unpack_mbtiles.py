@@ -28,6 +28,13 @@ for row in c.execute("SELECT zoom_level, tile_column, tile_row, tile_data FROM t
             handler.write(tile_data)
         duplicates[tile_data] = file_name
     else:
-        os.link(duplicates[tile_data], file_name)
+        try:
+            os.link(duplicates[tile_data], file_name)
+        except OSError:
+            # in case too many links error appears
+            with open(file_name, 'wb') as handler:
+                handler.write(tile_data)
+            duplicates[tile_data] = file_name
+
 
 conn.close()
