@@ -50,7 +50,11 @@ var json_in_progress = false;
     if ((params.lang != 'en') &&
         (params.lang != 'ru') &&
         (params.lang != 'be') &&
-        (params.lang != 'be-tarask'))
+        (params.lang != 'be:word_stress'') &&
+        (params.lang != 'be-tarask') &&
+        (params.lang != 'be-tarask:word_stress') &&
+        (params.lang != 'be-latn') &&
+        (params.lang != 'be-latn:word_stress'))
       params.lang = 'be';
 
     mmap = new mapboxgl.Map({

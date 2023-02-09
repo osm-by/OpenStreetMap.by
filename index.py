@@ -19,7 +19,17 @@ from web.contrib.template import render_cheetah
 GeoIpCache = GeoIP.open('GeoLiteCity.dat', GeoIP.GEOIP_MEMORY_CACHE)
 pg_database = f"host={os.environ['POSTGRES_HOST']} dbname={os.environ['POSTGRES_DB']} user={os.environ['POSTGRES_USER']} password={os.environ['POSTGRES_PASSWORD']}"
 
-LOCALES = ['be', 'be-tarask', 'ru', 'en', 'none']
+LOCALES = [
+    'be',
+    'be:word_stress',
+    'be-tarask',
+    'be-tarask:word_stress',
+    'be-latn',
+    'be-latn:word_stress',
+    'ru',
+    'en',
+    'none',
+]
 
 OK = 200
 ERROR = 500
@@ -567,7 +577,9 @@ def face_main(data):
     locale = data.get("lang", "be")
     userip = os.environ.get("REMOTE_ADDR", "0.0.0.0")
 
-    if locale not in ('en', 'ru', 'be', 'be-tarask'):
+    if locale not in {
+        'en', 'ru', 'be', 'be:word_stress', 'be-tarask', 'be-tarask:word_stress', 'be-latn', 'be-latn:word_stress'
+    }:
         locale = "be"
     if data.get('request') == 'describe':
         content_type = "text/javascript"
