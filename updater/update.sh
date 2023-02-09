@@ -17,11 +17,18 @@ docker-compose run --rm management bash updater/upd_prepare_fonts.sh
 
 docker-compose run --rm management bash updater/upd_download_belarus_dump.sh
 docker-compose run --rm management bash updater/upd_update_postgis.sh
-
 bash updater/upd_generate_belarus_mbtiles.sh
-bash updater/upd_generate_planet_mbtiles.sh
-
 docker-compose run --rm management bash updater/upd_unpack_belarus_mbtiles.sh
+
+docker-compose run --rm management bash updater/upd_download_planet_dump.sh
+bash updater/upd_generate_planet_mbtiles.sh
 docker-compose run --rm management bash updater/upd_unpack_planet_mbtiles.sh
 
 docker-compose run --rm management bash updater/upd_prepare_tile_data_info.sh
+
+rm -f openmaptiles/data/belarus.osm.pbf
+rm -f openmaptiles/data/belarus.bbox
+rm -f openmaptiles/data/planet.osm.pbf
+rm -f openmaptiles/data/planet.bbox
+rm -f tiledata/planet-latest.osm.pbf
+rm -f tiledata/planet.mbtiles
