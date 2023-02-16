@@ -9,6 +9,6 @@ echo ---------------------------------------------------------------------------
 cd tiledata
 
 mkdir -p belarus/data/v3
-python3 ../updater/unpack_mbtiles.py belarus.mbtiles belarus/data/v3
+python3 ../updater/unpack_mbtiles.py belarus.mbtiles belarus/data/v3 ../updater/belarus.poly
 
 cd ..

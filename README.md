@@ -19,17 +19,17 @@ at https://www.hetzner.com and costs @Komzpa 40.80 EUR monthly.
  1. clone repo `git clone https://github.com/osm-by/OpenStreetMap.by.git`
  2. init submodules `git submodule update --init --recursive` that initialize `openmaptiles`   
  3. run [`install.sh`](install.sh) - make sure that you have all required packages
- 4. run [`updater/update.sh`](updater/update.sh) - fetch and prepare data:
+ 4. run [`updater/update.sh belarus`](updater/update.sh) - fetch and prepare data:
     1. download latest osm dump for belarus
     2. update postgis database with `osm2pgsql`
     3. generate mbtiles for Belarus 0-14 zoom levels
-    4. generate overview mbtiles for planet 0-4 zoom levels
-    5. unpack mbtiles to filesystem to allow serve it by nginx.
-    6. download, patch and prepare vector tiles styles
-    7. download and prepare vector tiles fonts
-    8. download and prepare vector tiles data info
- 5. check that [`.env`](.env) contains good for your configuration 
- 6. run `docker-compose up -d nginx` run `nginx` and all required services locally.
+    4. unpack mbtiles to filesystem to allow serve it by nginx.
+    5. download, patch and prepare vector tiles styles
+    6. download and prepare vector tiles fonts
+    7. download and prepare vector tiles data info
+ 5. if you want to generate planet tiles too (take time and disk space), then run `updater/update.sh all` or `updater/update.sh planet`
+ 6. check that [`.env`](.env) contains good for your configuration 
+ 7. run `docker-compose up -d nginx` run `nginx` and all required services locally.
 
 
 ## Schema of openstreetmap.by work
@@ -62,9 +62,9 @@ See details in [`docker-compose.yml`](docker-compose.yml).
 
 - `belarus-latest.osm.pbf` - osm dump
 - `belarus.mbtiles` - mbtiles generated for Belarus osm dump zooms 0-14
-- `planet.mbtiles` - mbtiles generated for planet overview zooms 0-4
+- `planet.mbtiles` - mbtiles generated for planet overview zooms 0-14
 - `belarus/` - vector tiles for Belarus osm dump zooms 0-14 unpacked from `belarus.mbtiles`
-- `planet/` - vector tiles for planet overview zooms 0-4 unpacked from `planet.mbtiles`
+- `planet/` - vector tiles for planet overview zooms 0-14 unpacked from `planet.mbtiles`
 - `data/` - vector tile data info
 - `styles/` - styles for vector tiles rendering
 - `fonts/` - fonts used by styles for vector tiles rendering

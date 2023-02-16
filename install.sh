@@ -20,6 +20,7 @@ docker info
 python3 -m venv venv
 venv/bin/pip3 install wheel
 venv/bin/pip3 install docker-compose
+venv/bin/pip3 install shapely
 
 # create tile data
 mkdir -p tiledata
