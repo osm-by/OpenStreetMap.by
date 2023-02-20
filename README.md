@@ -35,8 +35,9 @@ at https://www.hetzner.com and costs @Komzpa 40.80 EUR monthly.
 ## Schema of openstreetmap.by work
 
                   production:                                   updater:
-    1. serve belarus from disk                  1. serve belarus tiles/styles/fonts from tileserver
-    2. serve planet from martin                 2. no planet tiles serve
+    1. serve fonts/styles from disc             1. serve fonts/styles from tileserver
+    2. serve belarus from disk                  2. serve belarus tile from tileserver
+    3. serve planet from martin                 3. no planet tiles serve
     
                     nginx                                        nginx
                       |                                            |
