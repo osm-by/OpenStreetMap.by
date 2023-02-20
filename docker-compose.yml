@@ -55,6 +55,13 @@ services:
         # config
       - ./tileserver-gl/config.json:/app/tileserver-gl/config.json:ro
 
+  martin:
+    image: maplibre/martin:v0.7.0
+    command: -l  0.0.0.0:3000 -W 8 /data/planet.mbtiles
+    volumes:
+      # tile data
+      - ./tiledata:/data:ro  # shared with openmaptiles updater
+
   postgis:
     image: postgis/postgis:12-3.0-alpine
     env_file: .env
@@ -65,9 +72,10 @@ services:
     image: redis:6.0-alpine
 
   nginx:
-    image: nginx:1.18-alpine
+    image: nginx:1.23.3-alpine
     depends_on:
       - webapp
+      - martin
     ports:
       - 80:80
     volumes:

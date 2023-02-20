@@ -64,7 +64,6 @@ See details in [`docker-compose.yml`](docker-compose.yml).
 - `belarus.mbtiles` - mbtiles generated for Belarus osm dump zooms 0-14
 - `planet.mbtiles` - mbtiles generated for planet overview zooms 0-14
 - `belarus/` - vector tiles for Belarus osm dump zooms 0-14 unpacked from `belarus.mbtiles`
-- `planet/` - vector tiles for planet overview zooms 0-14 unpacked from `planet.mbtiles`
 - `data/` - vector tile data info
 - `styles/` - styles for vector tiles rendering
 - `fonts/` - fonts used by styles for vector tiles rendering

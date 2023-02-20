@@ -59,7 +59,7 @@ def skip(zoom_level, tile_column, tile_row, border):
     return not border.contains(bbox)
 
 
-for prefix in product(*[string.hexdigits.lower()] * 3):
+for prefix in product(*[string.hexdigits.lower()] * 2):
     duplicates = {}
     sql = SQL_TEMPLATE.format(''.join(prefix))
     for zoom_level, tile_column, tile_row, tile_hash, tile_data in cursor.execute(sql):
