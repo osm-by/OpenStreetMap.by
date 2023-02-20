@@ -36,17 +36,19 @@ at https://www.hetzner.com and costs @Komzpa 40.80 EUR monthly.
 
                      nginx
                        |
-      --------------------------
-      |         |              |
-    static---webapp       (tileserver)
-                |              |
-            ----------         |
-            |        |         |
-          redis   postgis   tiledata
-                     |         |
-    =================+=========+=========
-                     |         |
-                   updater-belarus
+      --------------------------------------
+      |         |              |           |
+    static---webapp       (tileserver)   martin
+                |              |           |
+            ----------         -------------
+            |        |               |
+          redis   postgis         tiledata   
+                     |               |
+    =================+===============+=========
+                     |               |
+                     -----------------
+                             |
+                          updater
 
 
 *NOTE: tileserver can be replaced with serving tile data as standard static data serving by nginx.*
