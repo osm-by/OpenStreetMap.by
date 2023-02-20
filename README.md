@@ -34,21 +34,25 @@ at https://www.hetzner.com and costs @Komzpa 40.80 EUR monthly.
 
 ## Schema of openstreetmap.by work
 
-                     nginx
-                       |
-      --------------------------------------
-      |         |              |           |
-    static---webapp       (tileserver)   martin
-                |              |           |
-            ----------         -------------
-            |        |               |
-          redis   postgis         tiledata   
-                     |               |
-    =================+===============+=========
-                     |               |
-                     -----------------
-                             |
-                          updater
+                  production:                                   updater:
+    1. serve belarus from disk                  1. serve belarus tiles/styles/fonts from tileserver
+    2. serve planet from martin                 2. no planet tiles serve
+    
+                    nginx                                        nginx
+                      |                                            |
+      ---------------------------------           --------------------------
+      |         |           |         |           |        |               |
+    static---webapp         |       martin      static---webapp        tileserver
+                |           |         |                    |               |
+            ----------      -----------                ----------          |
+            |        |           |                     |        |          |
+          redis   postgis     tiledata               redis   postgis    tiledata
+                     |           |                              |          |
+    =================+===========+========      ================+==========+=====
+                     |           |                              |          |
+                     -------------                              ------------
+                           |                                         |
+                        updater                                   updater
 
 
 *NOTE: tileserver can be replaced with serving tile data as standard static data serving by nginx.*
